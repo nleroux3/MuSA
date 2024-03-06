@@ -16,6 +16,8 @@ elif cfg.numerical_model == 'dIm':
     import modules.dIm_tools as model
 elif cfg.numerical_model == 'snow17':
     import modules.snow17_tools as model
+elif cfg.numerical_model == 'svs2':
+    import modules.svs2_tools as model
 else:
     raise Exception('Model not implemented')
 import modules.met_tools as met
@@ -89,13 +91,15 @@ class SnowEnsemble():
         self.errors = error_sbst.copy()
         self.forcing = forcing_sbst.copy()
 
-        # create temporal FSM2
-        self.temp_dest = model.model_copy(self.lat_idx, self.lon_idx)
 
-        model.model_forcing_wrt(forcing_sbst, self.temp_dest, self.step)
 
         # Write init or dump file from previous run if step != 0
         if cfg.numerical_model in ['FSM2']:
+        
+            # create temporal FSM2
+            self.temp_dest = model.model_copy(self.lat_idx, self.lon_idx)
+
+            model.model_forcing_wrt(forcing_sbst, self.temp_dest, self.step)
             if step != 0:
                 model.write_dump(self.origin_dump[step - 1], self.temp_dest)
 
@@ -113,7 +117,16 @@ class SnowEnsemble():
             else:
                 origin_state_tmp, origin_dump_tmp =\
                     model.model_run(forcing_sbst)
-
+        elif cfg.numerical_model in ['svs2']:
+        
+            # Modify and write forcing with perturbation
+            model.model_forcing_wrt(forcing_sbst, self.step)
+            
+            model.model_run()
+            # read model outputs
+            origin_state_tmp = model.model_read_output()
+            origin_dump_tmp = origin_state_tmp.copy() # TO_DO NL : change later
+                
         else:
             raise Exception("Numerical model not implemented")
 
@@ -180,8 +193,11 @@ class SnowEnsemble():
                         met.perturb_parameters(forcing_sbst,
                                                noise=noise_tmp, update=True)
 
-            # writte perturbed forcing
-            model.model_forcing_wrt(member_forcing, self.temp_dest, self.step)
+            # write perturbed forcing
+            if cfg.numerical_model in ['FSM2']:
+                model.model_forcing_wrt(member_forcing, self.temp_dest, self.step)
+            elif cfg.numerical_model in ['svs2']:
+                model.model_forcing_wrt(member_forcing, self.step)
 
             if cfg.numerical_model in ['FSM2']:
                 if step != 0:
@@ -208,6 +224,17 @@ class SnowEnsemble():
                 else:
                     state_tmp, dump_tmp =\
                         model.model_run(member_forcing)
+            elif cfg.numerical_model in ['svs2']:
+                if step != 0:
+                    if cfg.da_algorithm in ['PBS', 'PF']:
+                        model.write_dump(self.out_members[mbr])
+                    else:  # if kalman, write updated dump
+                        model.write_dump(self.out_members_iter[mbr])
+
+                model.model_run()
+
+                state_tmp = model.model_read_output()
+                dump_tmp = state_tmp.copy()
 
             else:
                 raise Exception("Numerical model not implemented")

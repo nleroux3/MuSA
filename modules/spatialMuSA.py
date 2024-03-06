@@ -32,6 +32,8 @@ elif cfg.numerical_model == 'dIm':
     import modules.dIm_tools as model
 elif cfg.numerical_model == 'snow17':
     import modules.snow17_tools as model
+elif cfg.numerical_model == 'svs2':
+    import modules.svs2_tools as model
 else:
     raise Exception('Model not implemented')
 import copy

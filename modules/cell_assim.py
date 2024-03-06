@@ -14,6 +14,9 @@ import config as cfg
 import modules.internal_fns as ifn
 import modules.filters as flt
 from modules.internal_class import SnowEnsemble
+import xarray as xr
+import pandas as pd
+import pdb
 
 if cfg.numerical_model == 'FSM2':
     import modules.fsm_tools as model
@@ -21,11 +24,14 @@ elif cfg.numerical_model == 'dIm':
     import modules.dIm_tools as model
 elif cfg.numerical_model == 'snow17':
     import modules.snow17_tools as model
+elif cfg.numerical_model == 'svs2':
+    import modules.svs2_tools as model
 else:
     raise Exception('Model not implemented')
 
 
 def cell_assimilation(lat_idx, lon_idx):
+
 
     save_ensemble = cfg.save_ensemble
 
@@ -42,11 +48,15 @@ def cell_assimilation(lat_idx, lon_idx):
     if isinstance(observations, str):  # check if masked
         return None
 
-    main_forcing = model.forcing_table(lat_idx, lon_idx)
-
-    if ifn.forcing_check(main_forcing):
-        print("NA's found in: " + str(lat_idx) + "," + str(lon_idx))
-        return None
+    if cfg.numerical_model != 'svs2':
+        main_forcing = model.forcing_table(lat_idx, lon_idx)
+        if ifn.forcing_check(main_forcing):
+            print("NA's found in: " + str(lat_idx) + "," + str(lon_idx))
+            return None
+    else:
+        main_forcing = pd.read_csv(cfg.file_forcing, 
+                          delim_whitespace=True, header = None)
+        main_forcing.columns = model.forcing_columns
 
     time_dict = ifn.simulation_steps(observations, dates_obs)
 
@@ -54,6 +64,7 @@ def cell_assimilation(lat_idx, lon_idx):
     if np.isnan(observations).all() or cfg.da_algorithm == "deterministic_OL":
         ifn.run_model_openloop(lat_idx, lon_idx, main_forcing, filename)
         return None
+
 
     # Inicialice results dataframes
     # TODO: make function
@@ -72,6 +83,7 @@ def cell_assimilation(lat_idx, lon_idx):
 
     # initialice Ensemble class
     Ensemble = SnowEnsemble(lat_idx, lon_idx, time_dict)
+
 
     # Initialice Ensemble list if enabled in cfg
     if save_ensemble:
