@@ -54,11 +54,13 @@ def cell_assimilation(lat_idx, lon_idx):
             print("NA's found in: " + str(lat_idx) + "," + str(lon_idx))
             return None
     else:
-        main_forcing = pd.read_csv(cfg.file_forcing, 
+        main_forcing = pd.read_csv(cfg.file_forcing,
                           delim_whitespace=True, header = None)
         main_forcing.columns = model.forcing_columns
 
     time_dict = ifn.simulation_steps(observations, dates_obs)
+
+
 
     # If no obs in the cell, run openloop
     if np.isnan(observations).all() or cfg.da_algorithm == "deterministic_OL":
@@ -103,6 +105,8 @@ def cell_assimilation(lat_idx, lon_idx):
         forcing_sbst = main_forcing[time_dict["Assimilaiton_steps"][step]:
                                     time_dict["Assimilaiton_steps"][step + 1]]\
             .copy()
+
+        model.configure_options_ini_parameter(step, time_dict)
 
         Ensemble.create(forcing_sbst, observations_sbst, error_sbst, step)
 

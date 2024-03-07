@@ -5,7 +5,7 @@ Some functions to interact with FSM.
 
 Author: Esteban Alonso González - alonsoe@ipe.csic.es
 """
-import os
+import os, pdb
 import shutil
 import subprocess
 import tempfile
@@ -40,33 +40,35 @@ def model_run():
     os.chdir('/home/nil005/ords/Codes/MuSA/')
 
 
-def model_read_output():
+
+def model_read_output(read_dump=True):
 
 
     mod = xr.open_dataset(os.path.join(cfg.dir_exp,'output','out_svs2.nc'))
-    
+
     swe = mod['SNOMA'].to_dataframe('swe')
     sd = mod['SNODP'].to_dataframe('snd')
     Ts = mod['TSNO_SURF'].to_dataframe('Ts')
     alb = mod['SNOALB'].to_dataframe('Ts')
 
-    df = pd.concat([swe, sd, Ts, alb], axis=1)
-    df.columns = ['SWE', 'snd','Tsrf','alb']
-    
-    df['year'] = df.index.year
-    df['month'] = df.index.month
-    df['day'] = df.index.day
-    df['hour'] = df.index.hour
+    state = pd.concat([swe, sd, Ts, alb], axis=1)
+    state.columns = ['SWE', 'snd','Tsrf','alb']
+
+    state['year'] = state.index.year
+    state['month'] = state.index.month
+    state['day'] = state.index.day
+    state['hour'] = state.index.hour
 
 
-    df = df[model_columns]
+    state = state[model_columns]
 
-    return df
-    
-    #if read_dump:
-    #    return state, dump
-    #else:
-    #    return state
+    if read_dump:
+         dump = pd.read_csv(os.path.join(cfg.dir_exp, 'output/restart_svs2.csv'), header = None,delimiter=r"\s+", names = range(50))
+
+    if read_dump:
+       return state, dump
+    else:
+       return state
 
 
 
@@ -81,11 +83,45 @@ def model_forcing_wrt(forcing_df, step=0):
 
     met_forcing_temp = forcing_df.copy()
 
-
     met_forcing_temp['PRESNO'] = met_forcing_temp[['PRE','TA']].apply(lambda x: x[0] if x[1]<0 else 0, axis = 1)
     met_forcing_temp['PRERN'] = met_forcing_temp[['PRE','TA']].apply(lambda x: x[0] if x[1]>=0 else 0, axis = 1)
-
     met_forcing_temp.to_csv(os.path.join(cfg.dir_exp,'basin_forcing.met'), sep = ' ', index = False, header = False)
+
+def configure_MESH_parameter(step, dump):
+
+    if step == 0: # Initial run
+        os.system('cp '+cfg.dir_exp+'MESH_parameters_stop.txt '+cfg.dir_exp+'/MESH_parameters.txt')
+    else:
+
+        os.system('cp '+cfg.dir_exp+'MESH_parameters_restart.txt '+cfg.dir_exp+'/MESH_parameters.txt')
+        dump.to_csv(os.path.join(cfg.dir_exp, 'MESH_parameters.txt'), mode = 'a', index = False, header=False, sep = '\t')
+
+def configure_options_ini_parameter(step, time_dict):
+
+    if step == 0:
+        time = time_dict['del_t'][time_dict["Assimilaiton_steps"][step]:
+                                    time_dict["Assimilaiton_steps"][step + 1]+1]
+
+        time_end = time[-1]
+
+        os.system('sed "s/year_start/0/g  ; s/day_start/0/g  ; s/hour_start/0/g ; \
+            s/year_end/'+str(time_end.year)+'/g  ; s/day_end/'+str(time_end.timetuple().tm_yday)+'/g  ; s/hour_end/'+str(time_end.hour)+'/g" '+\
+            cfg.dir_exp+'/MESH_input_run_options_gen.ini>  '+cfg.dir_exp+'MESH_input_run_options.ini')
+
+
+    else:
+
+        time = time_dict['del_t'][time_dict["Assimilaiton_steps"][step]:
+                                    time_dict["Assimilaiton_steps"][step + 1]+1]
+
+        time_start = time[0]
+        time_end = time[-1]
+
+
+
+        os.system('sed "s/year_start/'+str(time_start.year)+'/g  ; s/day_start/'+str(time_start.timetuple().tm_yday)+'/g  ; s/hour_start/'+str(time_start.hour)+'/g ; \
+            s/year_end/'+str(time_end.year)+'/g  ; s/day_end/'+str(time_end.timetuple().tm_yday)+'/g  ; s/hour_end/'+str(time_end.hour)+'/g" '+\
+            cfg.dir_exp+'/MESH_input_run_options_gen.ini>  '+cfg.dir_exp+'MESH_input_run_options.ini')
 
 
 
@@ -108,7 +144,7 @@ def write_dump(dump):
     dump_copy.iloc[2, 0] = str(int(dump_copy.iloc[2, 0]))
     dump_copy.to_csv(file_name, header=None, index=None, sep=' ', mode='w',
                      na_rep='NaN')
-             
+
 
 def storeOL(OL_SVS, Ensemble, observations_sbst, time_dict, step):
 
@@ -120,7 +156,7 @@ def storeOL(OL_SVS, Ensemble, observations_sbst, time_dict, step):
     # Store colums
     for n, name_col in enumerate(ol_data.columns):
         OL_SVS[name_col] = ol_data.iloc[:, [n]].to_numpy()
-                
+
 
 def storeDA(Result_df, step_results, observations_sbst, error_sbst,
             time_dict, step):
@@ -159,11 +195,7 @@ def store_sim(updated_Sim, sd_Sim, Ensemble,
         list_state = copy.deepcopy(Ensemble.state_members_mcmc)
     else:
         list_state = copy.deepcopy(Ensemble.state_membres)
-    # remove time ids fomr FSM output
-    # TODO: modify directly FSM code to not to output time id's
-    for lst in range(len(list_state)):
-        data = list_state[lst]
-        data.drop(data.columns[[0, 1, 2, 3]], axis=1, inplace=True)
+
 
     rowIndex = updated_Sim.index[time_dict["Assimilaiton_steps"][step]:
                                  time_dict["Assimilaiton_steps"][step + 1]]
@@ -183,6 +215,7 @@ def store_sim(updated_Sim, sd_Sim, Ensemble,
         d1 = DescrStatsW(col_arr, weights=pesos)
         average_sim = d1.mean
         sd_sim = d1.std
+
 
         updated_Sim.loc[rowIndex, name_col] = average_sim
         sd_Sim.loc[rowIndex, name_col] = sd_sim
@@ -204,19 +237,19 @@ def init_result(del_t, DA=False):
     else:
 
         # Create results dataframe
-        Results = pd.DataFrame(np.nan, index=range(len(del_t)),
+        Results = pd.DataFrame(np.nan, index=range(len(del_t)-1),
                                columns=model_columns)
 
 
 
-        Results["year"] = [np.nan for x in del_t]
-        Results["month"] = [np.nan for x in del_t]
-        Results["day"] = [np.nan for x in del_t]
-        Results["hour"] = [np.nan for x in del_t]
-        Results["snd"] = [np.nan for x in del_t]
-        Results["SWE"] = [np.nan for x in del_t]
-        Results["Tsrf"] = [np.nan for x in del_t]
-        Results["alb"] = [np.nan for x in del_t]
+        Results["year"] = [np.nan for x in del_t[:-1]]
+        Results["month"] = [np.nan for x in del_t[:-1]]
+        Results["day"] = [np.nan for x in del_t[:-1]]
+        Results["hour"] = [np.nan for x in del_t[:-1]]
+        Results["snd"] = [np.nan for x in del_t[:-1]]
+        Results["SWE"] = [np.nan for x in del_t[:-1]]
+        Results["Tsrf"] = [np.nan for x in del_t[:-1]]
+        Results["alb"] = [np.nan for x in del_t[:-1]]
 
         Results = Results.astype({'snd': 'float32',
                                    'SWE': 'float32',

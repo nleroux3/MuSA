@@ -30,7 +30,7 @@ import shutil
 import os
 import statsmodels.stats.correlation_tools as ct
 from statsmodels.stats.weightstats import DescrStatsW
-
+import pdb
 
 def ens_klm(prior, obs, pred, alpha, R, rho_AB=1, rho_BB=1,
             stochastic=True, dosvd=True):
@@ -88,7 +88,6 @@ def ens_klm(prior, obs, pred, alpha, R, rho_AB=1, rho_BB=1,
             raise Exception('R must be a scalar, m x 1 vector,\
                             or m x m matrix.')
 
-    # pdb.set_trace()
     # Anomaly calculations.
     mprior = np.mean(prior, -1)  # Prior ensemble mean
     if n == 1:
@@ -460,7 +459,6 @@ def mcmc(Ensemble, observations_sbst_masked, R,
             C0 = ct.cov_nearest(C0, method="clipped")
 
     Id = np.eye(Np)
-    # import pdb; pdb.set_trace()
 
     accepted = 0
     for nsteps in range(chain_len):
@@ -916,7 +914,7 @@ def transform_space(parameters, trans_direction, pert_stra=False, vari = False):
     upper_bounds = cnt.upper_bounds
     lower_bounds = cnt.lower_bounds
     vars_to_perturbate = cfg.vars_to_perturbate
-    
+
     # HACK: This if is to correct a single vector
     if isinstance(pert_stra, str) and isinstance(vari, str):
         perturbation_strategy = [pert_stra]
@@ -1049,6 +1047,8 @@ def implement_assimilation(Ensemble, step):
 
             predicted = get_predictions(list_state, var_to_assim)
 
+
+
             observations_sbst_masked, predicted, r_cov = \
                 tidy_obs_pred_rcov(predicted, observations, errors)
 
@@ -1069,6 +1069,7 @@ def implement_assimilation(Ensemble, step):
             resampled_particles = resampled_indexes(wgth)
 
             Result["resampled_particles"] = resampled_particles
+
 
     elif da_algorithm == 'AdaPBS':
         # Check if there are observations to assim, or all weitgs = 1

@@ -7,7 +7,7 @@ assimilation functions.
 Author: Esteban Alonso González - alonsoe@ipe.csic.es
 """
 import glob
-import os
+import os, pdb
 import shutil
 import datetime as dt
 import netCDF4 as nc
@@ -122,27 +122,27 @@ def safe_pool(func, inputs, nprocess):
 
 def get_dates_obs():
 
-    
+
     if cfg.numerical_model == 'svs2':
-    
+
 
         ds = xr.open_dataset(cfg.obs_file)
 
         dates_obs = ds.time.values
         dates_obs.sort()
-        
+
         date_ini = dt.datetime.strptime(cfg.date_ini, "%Y-%m-%d %H:%M")
         date_end = dt.datetime.strptime(cfg.date_end, "%Y-%m-%d %H:%M")
-        
+
         dates_obs = pd.to_datetime(dates_obs)
         mask_time = (dates_obs >= cfg.date_ini) & (dates_obs <= cfg.date_end)
         dates_obs = dates_obs[mask_time]
 
 
         return dates_obs
-    
+
     else:
-    
+
         dates_obs = cfg.dates_obs
 
         if type(dates_obs) == list:
@@ -166,10 +166,10 @@ def get_dates_obs():
 def obs_array(dates_obs, lat_idx, lon_idx):
 
     if cfg.numerical_model == 'svs2':
-    
+
         date_ini = dt.datetime.strptime(cfg.date_ini, "%Y-%m-%d %H:%M")
         date_end = dt.datetime.strptime(cfg.date_end, "%Y-%m-%d %H:%M")
-        
+
         del_t = generate_dates(date_ini, date_end)
         obs_idx = np.searchsorted(del_t, dates_obs)
 
@@ -187,7 +187,7 @@ def obs_array(dates_obs, lat_idx, lon_idx):
         array_error[obs_idx] = cfg.r_cov
 
         return array_obs, array_error
-        
+
     else:
         nc_obs_path = cfg.nc_obs_path
         mask = cfg.nc_maks_path
@@ -431,7 +431,6 @@ def simulation_steps(observations, dates_obs):
 
     date_ini = dt.datetime.strptime(date_ini, "%Y-%m-%d %H:%M")
     date_end = dt.datetime.strptime(date_end, "%Y-%m-%d %H:%M")
-
     del_t = generate_dates(date_ini, date_end)
 
     obs_idx = np.searchsorted(del_t, dates_obs)
@@ -459,7 +458,10 @@ def simulation_steps(observations, dates_obs):
         assimilation_steps = season_ini_cuts[:, 0]
     elif (da_algorithm in ['PF', 'EnKF', 'IEnKF']):
         # HACK: I add one to easy the subset of the forcing
-        assimilation_steps = obs_idx + 1
+        if cfg.numerical_model != 'svs2':
+            assimilation_steps = obs_idx + 1
+        else:
+            assimilation_steps = obs_idx
     elif (da_algorithm == 'deterministic_OL'):
         assimilation_steps = 0
     else:

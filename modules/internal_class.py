@@ -8,7 +8,7 @@ Author: Esteban Alonso González - alonsoe@ipe.csic.es
 import config as cfg
 import numpy as np
 import pandas as pd
-import os
+import os, pdb
 import shutil
 if cfg.numerical_model == 'FSM2':
     import modules.fsm_tools as model
@@ -40,11 +40,11 @@ class SnowEnsemble():
         self.forcing = []
         self.Neff = None
 
-        # Inicialice open loop storage lists
+        # Initialize open loop storage lists
         self.origin_state = pd.DataFrame()
         self.origin_dump = []
 
-        # Inicialice lists of members
+        # Initialize lists of members
         self.state_membres = [0 for i in range(self.members)]
         self.out_members = [0 for i in range(self.members)]
         self.noise = [0 for i in range(self.members)]
@@ -56,17 +56,17 @@ class SnowEnsemble():
             self.noise_iter = [0 for i in range(self.members)]
             self.out_members_iter = [0 for i in range(self.members)]
 
-        # Inicialice prior weights = 1
+        # Initialize prior weights = 1
         self.wgth = np.ones(self.members)/self.members
 
-        # Inicialice step value
+        # Initialize step value
         self.step = -1
 
-        # Inicialice shape of function
+        # Initialize shape of function
         if cfg.redraw_prior:
             self.func_shape_arr = []
 
-        # Inicialice obs and forz
+        # Initialize obs and forz
         self.observations = []
 
         # MCMC storage
@@ -95,7 +95,7 @@ class SnowEnsemble():
 
         # Write init or dump file from previous run if step != 0
         if cfg.numerical_model in ['FSM2']:
-        
+
             # create temporal FSM2
             self.temp_dest = model.model_copy(self.lat_idx, self.lon_idx)
 
@@ -117,16 +117,23 @@ class SnowEnsemble():
             else:
                 origin_state_tmp, origin_dump_tmp =\
                     model.model_run(forcing_sbst)
+
         elif cfg.numerical_model in ['svs2']:
-        
+
+            # Reconfigure the MESH parameter with initial snow condictions from previous time step
+            if step != 0:
+                model.configure_MESH_parameter(self.step, self.origin_dump[step - 1])
+            else:
+                model.configure_MESH_parameter(self.step, np.empty(0))
+
+
             # Modify and write forcing with perturbation
             model.model_forcing_wrt(forcing_sbst, self.step)
-            
+
             model.model_run()
-            # read model outputs
-            origin_state_tmp = model.model_read_output()
-            origin_dump_tmp = origin_state_tmp.copy() # TO_DO NL : change later
-                
+            # read model outputs, dump is a df containing the initial conditions for next step
+            origin_state_tmp, origin_dump_tmp = model.model_read_output()
+
         else:
             raise Exception("Numerical model not implemented")
 
@@ -159,6 +166,7 @@ class SnowEnsemble():
                 else:
                     member_forcing, noise_tmp = \
                         met.perturb_parameters(forcing_sbst)
+
 
             else:
                 # if PBS/PF is used, use the noise
@@ -225,16 +233,25 @@ class SnowEnsemble():
                     state_tmp, dump_tmp =\
                         model.model_run(member_forcing)
             elif cfg.numerical_model in ['svs2']:
+                # if step != 0:
+                #     if cfg.da_algorithm in ['PBS', 'PF']:
+                #         model.write_dump(self.out_members[mbr])
+                #     else:  # if kalman, write updated dump
+                #         model.write_dump(self.out_members_iter[mbr])
+
+                # Reconfigure the MESH parameter with initial snow condictions from previous time step
                 if step != 0:
-                    if cfg.da_algorithm in ['PBS', 'PF']:
-                        model.write_dump(self.out_members[mbr])
-                    else:  # if kalman, write updated dump
-                        model.write_dump(self.out_members_iter[mbr])
+                    model.configure_MESH_parameter(self.step, self.out_members[mbr])
+                else:
+                    model.configure_MESH_parameter(self.step, np.empty(0))
+
+
+                # Modify and write forcing with perturbation
+                model.model_forcing_wrt(member_forcing, self.step)
 
                 model.model_run()
-
-                state_tmp = model.model_read_output()
-                dump_tmp = state_tmp.copy()
+                # read model outputs, dump is a df containing the initial conditions for next step
+                state_tmp, dump_tmp = model.model_read_output()
 
             else:
                 raise Exception("Numerical model not implemented")

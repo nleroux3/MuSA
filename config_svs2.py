@@ -31,12 +31,12 @@ restart_forcing = False
 
 # da_algorithm from PF, EnKF, IEnKF, PBS, ES, IES, deterministic_OL,
 # IES-MCMC_AI, IES-MCMC, AdaMuPBS, AdaPBS or PIES
-da_algorithm = 'PBS'
+da_algorithm = 'PF'
 redraw_prior = False  # PF and PBS only
 max_iterations = 4  # IEnKF, IES, IES-MCMC and AdaPBS
 # resampling_algorithm from "bootstrapping", residual_resample,
 # stratified_resample,  systematic_resample, no_resampling
-resampling_algorithm = "no_resampling"
+resampling_algorithm = "bootstrapping"
 ensemble_members = 20
 Neffthrs = 0.1           # Low Neff threshold
 
@@ -68,7 +68,7 @@ vars_to_perturbate = ["TA", "PRE"]
 
 # Name of the variable to assimilate in the observation file
 obs_var_names = 'sd_mean'
-    
+
 # In smoothers, re-draw new parameters for each season
 season_rejuvenation = [True, True]
 # seed to initialise the random number generator
@@ -105,8 +105,8 @@ nprocess = 8  # Note: if None, the number of processors will be estimated
 #aws_lat = 4735225.54  # Latitude in case of point_scale
 #aws_lon = 710701.28   # Longitude in case of point_scale
 
-date_ini = "2018-10-01 00:00"
-date_end = "2019-08-30 23:00"
+date_ini = "2018-10-01 06:00" # 1h after first time in the basin_forcing
+date_end = "2019-06-30 12:00"
 
 season_ini_month = 9  # In smoothers, beginning of DA window (month)
 season_ini_day = 1    # In smoothers, beginning of DA window (day)
