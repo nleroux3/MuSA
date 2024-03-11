@@ -1,6 +1,6 @@
 import os
 
-mesh_exe = '/home/nil005/ords/Codes/MESH_SVS/MESH_SVS_master/sa_mesh'
+mesh_exe = '/home/nil005/ords/Codes/MESH_SVS/MESH_SVS_add_restart/sa_mesh'
 
 svs_version = 'svs2'
 

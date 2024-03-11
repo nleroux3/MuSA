@@ -458,10 +458,7 @@ def simulation_steps(observations, dates_obs):
         assimilation_steps = season_ini_cuts[:, 0]
     elif (da_algorithm in ['PF', 'EnKF', 'IEnKF']):
         # HACK: I add one to easy the subset of the forcing
-        if cfg.numerical_model != 'svs2':
-            assimilation_steps = obs_idx + 1
-        else:
-            assimilation_steps = obs_idx
+        assimilation_steps = obs_idx + 1
     elif (da_algorithm == 'deterministic_OL'):
         assimilation_steps = 0
     else:

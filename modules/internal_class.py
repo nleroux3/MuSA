@@ -233,11 +233,6 @@ class SnowEnsemble():
                     state_tmp, dump_tmp =\
                         model.model_run(member_forcing)
             elif cfg.numerical_model in ['svs2']:
-                # if step != 0:
-                #     if cfg.da_algorithm in ['PBS', 'PF']:
-                #         model.write_dump(self.out_members[mbr])
-                #     else:  # if kalman, write updated dump
-                #         model.write_dump(self.out_members_iter[mbr])
 
                 # Reconfigure the MESH parameter with initial snow condictions from previous time step
                 if step != 0:
@@ -282,7 +277,8 @@ class SnowEnsemble():
         if create:  # If there is observational data update the ensemble
 
             # create temporal model dir
-            self.temp_dest = model.model_copy(self.lat_idx, self.lon_idx)
+            if cfg.numerical_model != 'svs2':
+                self.temp_dest = model.model_copy(self.lat_idx, self.lon_idx)
 
             # Ensemble generator
             for mbr in range(self.members):
@@ -292,10 +288,11 @@ class SnowEnsemble():
                     met.perturb_parameters(self.forcing, noise=noise_tmp,
                                            update=True)
 
-                model.model_forcing_wrt(member_forcing, self.temp_dest,
-                                        self.step)
+
 
                 if cfg.numerical_model in ['FSM2']:
+                    model.model_forcing_wrt(member_forcing, self.temp_dest,
+                        self.step)
                     if step != 0:
                         model.write_dump(self.out_members_iter[mbr],
                                          self.temp_dest)
@@ -306,7 +303,8 @@ class SnowEnsemble():
                         self.temp_dest)
 
                 elif cfg.numerical_model in ['dIm', 'snow17']:
-
+                    model.model_forcing_wrt(member_forcing, self.temp_dest,
+                        self.step)
                     if step != 0:
                         state_tmp, dump_tmp =\
                             model.model_run(member_forcing,
@@ -314,6 +312,23 @@ class SnowEnsemble():
                     else:
                         state_tmp, dump_tmp =\
                             model.model_run(member_forcing)
+
+                elif cfg.numerical_model in ['svs2']:
+
+                    # Reconfigure the MESH parameter with initial snow condictions from previous time step
+                    if step != 0:
+                        model.configure_MESH_parameter(self.step, self.out_members[mbr])
+                    else:
+                        model.configure_MESH_parameter(self.step, np.empty(0))
+
+                    # Modify and write forcing with perturbation
+                    model.model_forcing_wrt(member_forcing, self.step)
+
+                    model.model_run()
+
+                    # read model outputs, dump is a df containing the initial conditions for next step
+                    state_tmp, dump_tmp = model.model_read_output()
+
 
                 self.state_membres[mbr] = state_tmp.copy()
 

@@ -840,6 +840,22 @@ def get_predictions(list_state, var_to_assim):
 
     return predicted
 
+def weighted_std(values, axis, weights):
+    """
+    Return the weighted  standard deviation.
+    values, weights -- Numpy ndarrays with the same shape.
+    """
+    average = np.average(values, axis=axis, weights=weights)
+
+    av_list = []
+    for i in range(len(values)):
+        av_list.append(average)
+
+    # Fast and numerically precise:
+    variance = np.average((np.asarray(values)-np.asarray(av_list))**2,
+                          axis=axis, weights=weights)
+    return np.sqrt(variance)
+
 
 def tidy_obs_pred_rcov(predicted, observations_sbst, errors_sbst,
                        ret_mask=False):
@@ -1039,6 +1055,7 @@ def implement_assimilation(Ensemble, step):
             Result["resampled_particles"] = resampled_particles
 
     elif da_algorithm == "PF":
+
         if np.isnan(Ensemble.observations).all():
 
             Result["resampled_particles"] = np.arange(Ensemble.members)
@@ -1046,8 +1063,6 @@ def implement_assimilation(Ensemble, step):
         else:
 
             predicted = get_predictions(list_state, var_to_assim)
-
-
 
             observations_sbst_masked, predicted, r_cov = \
                 tidy_obs_pred_rcov(predicted, observations, errors)
