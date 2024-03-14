@@ -47,7 +47,7 @@ def MuSA():
 
         print("Running the assimilation in a single point")
 
-        cell_assimilation(3,1)
+        cell_assimilation(2,3)
 
 
 

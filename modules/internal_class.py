@@ -236,13 +236,14 @@ class SnowEnsemble():
 
                 # Reconfigure the MESH parameter with initial snow condictions from previous time step
                 if step != 0:
-                    model.configure_MESH_parameter(self.step, self.out_members[mbr])
+                    if cfg.da_algorithm in ['PBS', 'PF']:
+                        model.configure_MESH_parameter(self.step, self.out_members[mbr])
+
+                    else:  # if kalman, write updated dump
+                        model.configure_MESH_parameter(self.step, self.out_members_iter[mbr])
+
                 else:
                     model.configure_MESH_parameter(self.step, np.empty(0))
-
-
-                # Modify and write forcing with perturbation
-                model.model_forcing_wrt(member_forcing, self.step)
 
                 model.model_run()
                 # read model outputs, dump is a df containing the initial conditions for next step
@@ -289,7 +290,6 @@ class SnowEnsemble():
                                            update=True)
 
 
-
                 if cfg.numerical_model in ['FSM2']:
                     model.model_forcing_wrt(member_forcing, self.temp_dest,
                         self.step)
@@ -315,14 +315,14 @@ class SnowEnsemble():
 
                 elif cfg.numerical_model in ['svs2']:
 
-                    # Reconfigure the MESH parameter with initial snow condictions from previous time step
-                    if step != 0:
-                        model.configure_MESH_parameter(self.step, self.out_members[mbr])
-                    else:
-                        model.configure_MESH_parameter(self.step, np.empty(0))
-
                     # Modify and write forcing with perturbation
                     model.model_forcing_wrt(member_forcing, self.step)
+
+                    # Reconfigure the MESH parameter with initial snow condictions from previous time step
+                    if step != 0:
+                        model.configure_MESH_parameter(self.step, self.out_members_iter[mbr])
+                    else:
+                        model.configure_MESH_parameter(self.step, np.empty(0))
 
                     model.model_run()
 
