@@ -128,6 +128,7 @@ def create_noise(perturbation_strategy, n_steps, mean, std_dev, var):
         noise = np.random.normal(mean, std_dev, 1)
         noise = np.repeat(noise, n_steps)
 
+
     elif perturbation_strategy == "lognormal":
         noise = np.random.lognormal(mean, std_dev, 1)
         noise = np.repeat(noise, n_steps)
@@ -235,8 +236,31 @@ def perturb_parameters(main_forcing, lat_idx=None, lon_idx=None, member=None,
         # If lognormal perturbation multiplicate, else add
         if strategy_tmp in ["lognormal", "logitnormal_mult"]:
             forcing_copy[var_tmp] = forcing_copy[var_tmp].values * noise_coef
+
+            if strategy_tmp in ["lognormal"]:
+                bPmax = cnt.upper_bounds[var_tmp]
+                bPmin = cnt.lower_bounds[var_tmp]
+
+                # Bound the perturbed forcings
+                forcing_values = forcing_copy[var_tmp].values
+                forcing_values[forcing_values > bPmax] = bPmax
+                forcing_values[forcing_values < bPmin] = bPmin
+
+                forcing_copy[var_tmp] = forcing_values
+
         else:
             forcing_copy[var_tmp] = forcing_copy[var_tmp].values + noise_coef
+
+            if strategy_tmp in ["normal"]:
+                bPmax = cnt.upper_bounds[var_tmp]
+                bPmin = cnt.lower_bounds[var_tmp]
+
+                # Bound the perturbed forcings
+                forcing_values = forcing_copy[var_tmp].values
+                forcing_values[forcing_values > bPmax] = bPmax
+                forcing_values[forcing_values < bPmin] = bPmin
+
+                forcing_copy[var_tmp] = forcing_values
 
         # store the noise
         noise_storage[var_tmp] = noise_coef

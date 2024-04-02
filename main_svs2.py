@@ -47,13 +47,12 @@ def MuSA():
 
         print("Running the assimilation in a single point")
 
-        cell_assimilation(2,3)
+        cell_assimilation(0,0)
 
 
 
 
 if __name__ == "__main__":
-
 
     MuSA()
 

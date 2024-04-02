@@ -1,1 +1,1 @@
-config_svs2.py
+config_svs2_Powassan.py

@@ -183,7 +183,7 @@ def obs_array(dates_obs, lat_idx, lon_idx):
         array_error = np.empty(len(del_t))
         array_error[:] = np.nan
 
-        array_obs[obs_idx] = ds[cfg.obs_var_names].values / 100
+        array_obs[obs_idx] = ds[cfg.obs_var_names].values
         array_error[obs_idx] = cfg.r_cov
 
         return array_obs, array_error
@@ -478,21 +478,39 @@ def run_model_openloop(lat_idx, lon_idx, main_forcing, filename):
 
     print("No observations in: " + str(lat_idx) + "," + str(lon_idx))
     # create temporal simulation
-    temp_dest = model.model_copy(lat_idx, lon_idx)
-    real_forcing = main_forcing.copy()
-    model.model_forcing_wrt(real_forcing, temp_dest, step=0)
-    if cfg.numerical_model in ['FSM2']:
-        model.model_run(temp_dest)
-        state = model.model_read_output(temp_dest, read_dump=False)
-    elif cfg.numerical_model in ['dIm', 'snow17']:
-        state = model.model_run(real_forcing)[0]
+    if cfg.numerical_model != 'svs2':
+
+        temp_dest = model.model_copy(lat_idx, lon_idx)
+        real_forcing = main_forcing.copy()
+        model.model_forcing_wrt(real_forcing, temp_dest, step=0)
+        if cfg.numerical_model in ['FSM2']:
+            model.model_run(temp_dest)
+            state = model.model_read_output(temp_dest, read_dump=False)
+        elif cfg.numerical_model in ['dIm', 'snow17']:
+            state = model.model_run(real_forcing)[0]
+
+        # Clean tmp directory
+        try:
+            shutil.rmtree(os.path.split(temp_dest)[0], ignore_errors=True)
+        except TypeError:
+            pass
+
+
+    elif cfg.numerical_model == 'svs2':
+
+        real_forcing = main_forcing.copy()
+        model.configure_MESH_parameter(0, np.empty(0))
+        # Modify and write forcing with perturbation
+        model.model_forcing_wrt(real_forcing, 0)
+
+        model.model_run()
+        # read model outputs, dump is a df containing the initial conditions for next step
+        state, dump_tmp  = model.model_read_output()
+
     else:
         Exception("Numerical model not implemented")
+
     state.columns = list(model.model_columns)
 
     io_write(filename, state)
-    # Clean tmp directory
-    try:
-        shutil.rmtree(os.path.split(temp_dest)[0], ignore_errors=True)
-    except TypeError:
-        pass
+

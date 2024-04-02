@@ -47,7 +47,9 @@ class SnowEnsemble():
         # Initialize lists of members
         self.state_membres = [0 for i in range(self.members)]
         self.out_members = [0 for i in range(self.members)]
+        self.out_members_ensemble = [0 for i in range(self.members)]
         self.noise = [0 for i in range(self.members)]
+        self.resampled_particles = [0 for i in range(self.members)]
 
         if cfg.da_algorithm in ['EnKF', 'IEnKF', 'ES',
                                 'IES', 'IES-MCMC_AI',
@@ -256,6 +258,7 @@ class SnowEnsemble():
             self.state_membres[mbr] = state_tmp.copy()
 
             self.out_members[mbr] = dump_tmp.copy()
+            self.out_members_ensemble[mbr] = dump_tmp.copy()
 
             self.noise[mbr] = noise_tmp.copy()
 

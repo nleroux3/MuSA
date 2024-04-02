@@ -11,13 +11,15 @@ numerical_model = 'svs2'  # model to use from FSM2, dIm or snow17
 # Directories
 # -----------------------------------
 
-obs_file = "/home/nil005/store6/Driving_Data/Snow_Crested_Butte/MuSA/DATA/obs/obs.nc"
+obs_file = "/home/nil005/store6/Driving_Data/Powassan_2022/data_assimilation/obs/obs.nc"
 intermediate_path = "./DATA/INTERMEDIATE/"
-file_forcing = '/home/nil005/ords/Codes/MuSA/MESH_SVS2_SCB/basin_forcing_org.met'
-dir_exp = '/home/nil005/ords/Codes/MuSA/MESH_SVS2_SCB/'
-save_ensemble_path = "./DATA/ENSEMBLES/"
-output_path = "./DATA/RESULTS/"
+file_forcing = '/home/nil005/store6/Driving_Data/Powassan_2022/data_assimilation/exp/basin_forcing_GEM_org.met'
+dir_exp = '/home/nil005/store6/Driving_Data/Powassan_2022/data_assimilation/exp/'
+save_ensemble_path = "/home/nil005/store6/Driving_Data/Powassan_2022/data_assimilation/output"
+output_path = "/home/nil005/store6/Driving_Data/Powassan_2022/data_assimilation/output"
 tmp_path = None
+
+mesh_exe = '/home/nil005/ords/Codes/MESH_SVS/MESH_SVS_add_restart/sa_mesh'
 
 
 # If restart_run is enabled, the outputs will not be overwritten
@@ -32,7 +34,7 @@ restart_forcing = False
 # da_algorithm from PF, EnKF, IEnKF, PBS, ES, IES, deterministic_OL,
 # IES-MCMC_AI, IES-MCMC, AdaMuPBS, AdaPBS or PIES
 da_algorithm = 'PF'
-redraw_prior = True  # PF and PBS only
+redraw_prior = False  # PF and PBS only
 max_iterations = 4  # IEnKF, IES, IES-MCMC and AdaPBS
 # resampling_algorithm from "bootstrapping", residual_resample,
 # stratified_resample,  systematic_resample, no_resampling
@@ -55,7 +57,7 @@ burn_in = 0.1      # discard the first x proportion of samples
 r_cov = [0.04]
 add_dynamic_noise = False
 
-# var_to_assim from "snd", "SWE", "Tsrf","fSCA", "SCA", "alb", "LE", "H"
+# var_to_assim from "snd", "SWE", "Tsrf" from the output file from SVS2
 var_to_assim = ["snd"]
 obs_error_var_names = ['sdError']  # In case of r_cov = 'dynamic_error'
 
@@ -67,7 +69,7 @@ DAord_names = ["Ampli"]
 vars_to_perturbate = ["TA", "PRE"]
 
 # Name of the variable to assimilate in the observation file
-obs_var_names = 'sd_mean'
+obs_var_names = 'SD'
 
 # In smoothers, re-draw new parameters for each season
 season_rejuvenation = [True, True]
@@ -76,13 +78,13 @@ seed = None
 
 # perturbation_strategy from "normal", "lognormal",
 # "logitnormal_adi" or "logitnormal_mult"
-perturbation_strategy = ["logitnormal_adi", "logitnormal_mult"]
+perturbation_strategy = ["normal", "lognormal"]
 
 # precipitation_phase from "Harder" or "temp_thld"
 #precipitation_phase = "Harder"
 
 # Save ensembles as a pkl object
-save_ensemble = False
+save_ensemble = True
 
 # -----------------------------------
 # Domain
@@ -105,10 +107,10 @@ nprocess = 8  # Note: if None, the number of processors will be estimated
 #aws_lat = 4735225.54  # Latitude in case of point_scale
 #aws_lon = 710701.28   # Longitude in case of point_scale
 
-date_ini = "2018-10-01 06:00" # 1h after first time in the basin_forcing
-date_end = "2019-06-30 12:00"
+date_ini = "2022-10-26 07:00" # 1h after first time in the basin_forcing
+date_end = "2023-05-10 00:00"
 
-season_ini_month = 9  # In smoothers, beginning of DA window (month)
+season_ini_month = 10  # In smoothers, beginning of DA window (month)
 season_ini_day = 1    # In smoothers, beginning of DA window (day)
 
 

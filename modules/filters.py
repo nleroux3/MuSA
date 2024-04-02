@@ -35,7 +35,7 @@ import pdb
 def ens_klm(prior, obs, pred, alpha, R, rho_AB=1, rho_BB=1,
             stochastic=True, dosvd=True):
     """
-    EnKA: Implmentation of the Ensemble Kalman Analysis
+    EnKA: Implementation of the Ensemble Kalman Analysis
     """
     # TODO: Using a Bessel correction (Ne-1 normalization) for sample
     # covariances.
@@ -1053,6 +1053,7 @@ def implement_assimilation(Ensemble, step):
 
             resampled_particles = resampled_indexes(wgth)
             Result["resampled_particles"] = resampled_particles
+            Ensemble.resampled_particles = resampled_particles
 
     elif da_algorithm == "PF":
 
@@ -1084,6 +1085,7 @@ def implement_assimilation(Ensemble, step):
             resampled_particles = resampled_indexes(wgth)
 
             Result["resampled_particles"] = resampled_particles
+            Ensemble.resampled_particles = resampled_particles
 
 
     elif da_algorithm == 'AdaPBS':

@@ -106,8 +106,9 @@ def cell_assimilation(lat_idx, lon_idx):
                                     time_dict["Assimilaiton_steps"][step + 1]]\
             .copy()
 
-        # If SVS2
-        model.configure_options_ini_parameter(step, time_dict)
+        if cfg.numerical_model == 'svs2':
+            model.configure_options_ini_parameter(step, time_dict)
+
 
         Ensemble.create(forcing_sbst, observations_sbst, error_sbst, step)
 
@@ -143,6 +144,7 @@ def cell_assimilation(lat_idx, lon_idx):
         if cfg.da_algorithm in ["PBS", "AdaPBS", "AdaMuPBS", "ES",
                                 "IES", "PIES", "IES-MCMC"]:
             Ensemble.season_rejuvenation()
+
 
     # Store OL
     model.storeOL(OL_Sim, Ensemble, observations_sbst,

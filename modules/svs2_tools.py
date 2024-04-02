@@ -25,19 +25,35 @@ import numpy as np
 import xarray as xr
 import modules.internal_fns as ifn
 from statsmodels.stats.weightstats import DescrStatsW
+from metpy.calc import dewpoint_from_specific_humidity,wet_bulb_temperature
+from metpy.units import units
+
 if cfg.DAsord:
     from modules.user_optional_fns import snd_ord
 # TODO: homogenize documentation format
 
 forcing_columns = ['HOUR', 'MINS', 'JDAY', 'YEAR', 'FSIN', 'FLIN', 'PRE', 'TA', 'QA', 'UV', 'PRES', 'PRERN', 'PRESNO']
-
 model_columns = ["year", "month", "day", "hour", "snd", "SWE", "Tsrf", "alb"]
 
 
+def W19(Ta, QA, Pres):
+    a = 6.99e-5
+    b = 2
+    c = 3.97
+
+    Td = dewpoint_from_specific_humidity(Pres * units.Pa, Ta * units.degC, QA * units('kg/kg')).magnitude
+    Tw = wet_bulb_temperature(Pres * units.Pa, Ta * units.degC, Td * units.degC).magnitude
+    fr = 1.-1./(1. + a*np.exp(b*(Tw+c)))  # Liquid precipitation fraction
+
+    return fr
+
 def model_run():
-    os.chdir('/home/nil005/ords/Codes/MuSA/MESH_SVS2_SCB/')
-    os.system("python /home/nil005/ords/Codes/MuSA/MESH_SVS2_SCB/run_Ctb.py")
-    os.chdir('/home/nil005/ords/Codes/MuSA/')
+
+    current_dir = os.getcwd()
+    os.chdir(cfg.dir_exp)
+    os.system(cfg.mesh_exe)
+    os.system("python "+current_dir+"/generate_nc_output.py svs2")
+    os.chdir(current_dir)
 
 
 
@@ -83,8 +99,13 @@ def model_forcing_wrt(forcing_df, step=0):
 
     met_forcing_temp = forcing_df.copy()
 
-    met_forcing_temp['PRESNO'] = met_forcing_temp[['PRE','TA']].apply(lambda x: x[0] if x[1]<0 else 0, axis = 1)
-    met_forcing_temp['PRERN'] = met_forcing_temp[['PRE','TA']].apply(lambda x: x[0] if x[1]>=0 else 0, axis = 1)
+
+    frac_liq = W19(met_forcing_temp['TA'].values, met_forcing_temp['QA'].values, met_forcing_temp['PRES'].values)
+    PRE = met_forcing_temp['PRE'].values
+    PRESNO = PRE * (1.-frac_liq)
+    PRERN = PRE * frac_liq
+    met_forcing_temp['PRESNO'] = PRESNO
+    met_forcing_temp['PRERN'] = PRERN
     met_forcing_temp.to_csv(os.path.join(cfg.dir_exp,'basin_forcing.met'), sep = ' ', index = False, header = False)
 
 def configure_MESH_parameter(step, dump):

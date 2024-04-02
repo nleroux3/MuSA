@@ -36,16 +36,9 @@ soiltext                 NIL !NIL: required to use soil_levels.txt as-is
 !> nlayers   ----- 1 ----- 2 ----- 3 ----- 4 ----- 5 ----- 6 ----- 7
 sand           60.    60.     60.0 !%
 clay           10.    10.     10. !%
-wsoil          0.05   0.03   0.11 !vol. content
-isoil          0.0     0.0     0.0 !vol. content
-tpsoil         276.35    276.85     277.45   ! soil temperature below bg/lv  (K)
-tpsoilv        276.35    276.85     277.45   ! soil temperature below high veg  (K)
 
 tperm      274.81 ! (Deep soil temperature)
 
-!> Special values not tied to soil layer scheme.
-!> nlayers   ----- 1 ----- 2
-tground      276.35   276.85 !Kelvin, only 2 values for svs1
 
 !> Vegetation canopies.
 !> Map land cover to the most appropriate land cover in SVS.
@@ -54,10 +47,7 @@ tground      276.35   276.85 !Kelvin, only 2 values for svs1
 !>               sea glacier in-lake ever-nl ever-bl deci-nl deci-bl trop-bl  dry-tr ever-sh deci-sh thor-sh shor-gr long-gr   crops    rice   sugar   maize  cotton  irr-cr   urban  tundra   swamp  desert mx-tree   mx-sh
 vf               0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     1.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 !fraction
 z0v              0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.02    0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 !roughness length
-!> nlayers   ----- 1 ----- 2
-tvege          276.35   276.85  !Kelvin
-!> npoints   ----- 1
-wveg             0.0 !kg m**-2
+          0.0 !kg m**-2
 
 ! Multilayer Snowpack scheme
 nsl     20   ! Number of snow layers
@@ -75,8 +65,31 @@ hsnowcomp B92     ! Option for the compaction scheme for Crocus
 lout_snow_profile .true.  ! Create output file containing detailed information on snowpack layering. 
 lout_snow_vegh .true.
 
-! Activate canopy module
-lsnow_interception_svs2  .false.
-lforcing_above .true.
+lwrite_restart .true.      ! Option to write a restart file for SVS2 at the end of the simulation
+lread_restart  .true.      ! Option to read restart information for SVS2/Crocus in MESH_paramater.txt.        
 
-VGH_DENS 0.9
+!> Physical constant for snowpack scheme (uncomment to use)
+!>xvaging_noglacier  60 ! Aging coefficient (in days) used for albedo calculation in visible range (see modd_snow_par)
+wveg	0.0																																																
+tground	273.2134	273.2167																																															
+tvege	273.2134	273.2167																																															
+tpsoil	273.2134	273.2327	273.2617	273.3206	273.4752	273.7914	274.2489																																										
+tpsoilv	273.3461	273.3499	273.3593	273.3791	273.4453	273.7426	274.2216																																										
+wsoil	0.3205075	0.3184664	0.3141912	0.3054299	0.303759	0.3127356	0.2889051																																										
+isoil	0.0	0.0	0.0	0.0	0.0	0.0	0.0																																										
+snoma_ml	24.13429	25.35983	47.48265	47.48782	94.97726	70.43674	44.21654	44.21014	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0																													
+snoden_ml	443.6887	443.6148	440.2281	440.2334	442.1135	461.3413	468.6796	468.6817	50.0	50.0	50.0	50.0	50.0	50.0	50.0	50.0	50.0	50.0	50.0	50.0																													
+snoage_ml	114.3206	114.7951	135.9577	135.9577	135.9581	171.6553	199.9132	199.9132	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0																													
+snodopt_ml	0.001257375	0.001222971	0.001157623	0.001157623	0.001157226	0.001160337	0.001090709	0.001090709	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0																													
+snosph_ml	1.0	1.0	1.0	1.0	1.0	1.0	1.0	1.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0																													
+snohist_ml	4.0	4.0	4.0	4.0	4.0	4.0	4.0	4.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0																													
+tsnow_ml	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16																													
+wsnow_ml	0.001484751	0.001560651	0.002965642	0.002965897	0.005883377	0.004012061	0.002439204	0.002438829	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0																													
+snomav_ml	2.5842	25.01675	26.34148	95.312	95.29854	70.68064	96.9149	24.17827	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0																													
+snodenv_ml	438.6004	428.1922	428.2859	440.3335	442.2447	460.3504	491.2379	916.9999	50.0	50.0	50.0	50.0	50.0	50.0	50.0	50.0	50.0	50.0	50.0	50.0																													
+snoagev_ml	108.5459	114.6752	114.6752	135.968	135.9684	171.6544	199.2482	212.684	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0																													
+snodoptv_ml	0.001641222	0.001226794	0.00122679	0.001135681	0.00113524	0.001137996	0.0009872693	0.0009008454	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0																													
+snosphv_ml	1.0	1.0	1.0	1.0	1.0	1.0	1.0	1.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0																													
+snohistv_ml	4.0	4.0	4.0	4.0	4.0	4.0	4.0	5.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0																													
+tsnowv_ml	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16	273.16																													
+wsnowv_ml	0.0001625532	0.001646953	0.001733453	0.005950199	0.005899895	0.004043393	0.004844138	9.568241e-11	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0																													
