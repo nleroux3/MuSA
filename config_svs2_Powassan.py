@@ -33,13 +33,13 @@ restart_forcing = False
 
 # da_algorithm from PF, EnKF, IEnKF, PBS, ES, IES, deterministic_OL,
 # IES-MCMC_AI, IES-MCMC, AdaMuPBS, AdaPBS or PIES
-da_algorithm = 'PF'
+da_algorithm = 'PBS'
 redraw_prior = False  # PF and PBS only
 max_iterations = 4  # IEnKF, IES, IES-MCMC and AdaPBS
 # resampling_algorithm from "bootstrapping", residual_resample,
 # stratified_resample,  systematic_resample, no_resampling
 resampling_algorithm = "no_resampling"
-ensemble_members = 100
+ensemble_members = 2
 Neffthrs = 0.1           # Low Neff threshold
 
 
@@ -108,7 +108,7 @@ nprocess = 8  # Note: if None, the number of processors will be estimated
 #aws_lon = 710701.28   # Longitude in case of point_scale
 
 date_ini = "2022-10-26 07:00" # 1h after first time in the basin_forcing
-date_end = "2023-05-10 00:00"
+date_end = "2023-01-10 00:00"
 
 season_ini_month = 10  # In smoothers, beginning of DA window (month)
 season_ini_day = 1    # In smoothers, beginning of DA window (day)

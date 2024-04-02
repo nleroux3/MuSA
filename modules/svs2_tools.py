@@ -52,7 +52,9 @@ def model_run():
     current_dir = os.getcwd()
     os.chdir(cfg.dir_exp)
     os.system(cfg.mesh_exe)
-    os.system("python "+current_dir+"/generate_nc_output.py svs2")
+    print(current_dir)
+    os.system("python "+current_dir+"/modules/generate_nc_output.py svs2")
+    os.system("python "+current_dir+"/modules/generate_smrt_output.py")
     os.chdir(current_dir)
 
 
@@ -77,6 +79,9 @@ def model_read_output(read_dump=True):
 
 
     state = state[model_columns]
+
+    smrt_out = xr.open_dataset(os.path.join(cfg.dir_exp,'output','out_smrt.nc')).to_dataframe()
+    state = pd.concat([state, smrt_out], axis = 1)
 
     if read_dump:
          dump = pd.read_csv(os.path.join(cfg.dir_exp, 'output/restart_svs2.csv'), header = None,delimiter=r"\s+", names = range(50))
