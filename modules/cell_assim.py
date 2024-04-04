@@ -64,6 +64,7 @@ def cell_assimilation(lat_idx, lon_idx):
 
     # If no obs in the cell, run openloop
     if np.isnan(observations).all() or cfg.da_algorithm == "deterministic_OL":
+        model.configure_options_ini_parameter(0, time_dict)
         ifn.run_model_openloop(lat_idx, lon_idx, main_forcing, filename)
         return None
 
@@ -116,34 +117,41 @@ def cell_assimilation(lat_idx, lon_idx):
         model.store_sim(prior_mean, prior_sd, Ensemble,
                         time_dict, step, save_prior=True)
 
-        step_results = flt.implement_assimilation(Ensemble, step)
+        if cfg.da_algorithm == "ensemble_OL":
+            if save_ensemble:
+                # deepcopy necesary to not to change all
+                Ensemble_tmp = copy.deepcopy(Ensemble)
+                ensemble_list.append(Ensemble_tmp)
 
-        if save_ensemble:
-            # deepcopy necesary to not to change all
-            Ensemble_tmp = copy.deepcopy(Ensemble)
-            ensemble_list.append(Ensemble_tmp)
+        else:
+            step_results = flt.implement_assimilation(Ensemble, step)
 
-        # Store results in dataframes
-        model.storeDA(DA_Results, step_results, observations_sbst, error_sbst,
-                      time_dict, step)
-        model.store_sim(updated_Sim, sd_Sim, Ensemble,
+            if save_ensemble:
+                # deepcopy necesary to not to change all
+                Ensemble_tmp = copy.deepcopy(Ensemble)
+                ensemble_list.append(Ensemble_tmp)
+
+            # Store results in dataframes
+            model.storeDA(DA_Results, step_results, observations_sbst, error_sbst,
                         time_dict, step)
+            model.store_sim(updated_Sim, sd_Sim, Ensemble,
+                            time_dict, step)
 
-        if cfg.da_algorithm in ['IES-MCMC', 'IES-MCMC_AI']:
-            model.store_sim(mcmc_Sim, mcmcSD_Sim, Ensemble,
-                            time_dict, step, MCMC=True)
+            if cfg.da_algorithm in ['IES-MCMC', 'IES-MCMC_AI']:
+                model.store_sim(mcmc_Sim, mcmcSD_Sim, Ensemble,
+                                time_dict, step, MCMC=True)
 
-        # If redraw, calculate the postrior shape
-        if cfg.redraw_prior:
-            Ensemble.posterior_shape()
+            # If redraw, calculate the postrior shape
+            if cfg.redraw_prior:
+                Ensemble.posterior_shape()
 
-        # Resample if filtering
-        if cfg.da_algorithm in ["PF", "PBS"]:
-            Ensemble.resample(step_results["resampled_particles"])
-        # Optionally, creating new parameters per season (after resampling)
-        if cfg.da_algorithm in ["PBS", "AdaPBS", "AdaMuPBS", "ES",
-                                "IES", "PIES", "IES-MCMC"]:
-            Ensemble.season_rejuvenation()
+            # Resample if filtering
+            if cfg.da_algorithm in ["PF", "PBS"]:
+                Ensemble.resample(step_results["resampled_particles"])
+            # Optionally, creating new parameters per season (after resampling)
+            if cfg.da_algorithm in ["PBS", "AdaPBS", "AdaMuPBS", "ES",
+                                    "IES", "PIES", "IES-MCMC"]:
+                Ensemble.season_rejuvenation()
 
 
     # Store OL

@@ -33,7 +33,7 @@ if cfg.DAsord:
 # TODO: homogenize documentation format
 
 forcing_columns = ['HOUR', 'MINS', 'JDAY', 'YEAR', 'FSIN', 'FLIN', 'PRE', 'TA', 'QA', 'UV', 'PRES', 'PRERN', 'PRESNO']
-model_columns = ["year", "month", "day", "hour", "snd", "SWE", "Tsrf", "alb"]
+model_columns = ["year", "month", "day", "hour", "snd", "SWE", "Tsrf", "alb","sigma"]
 
 
 def W19(Ta, QA, Pres):
@@ -77,8 +77,6 @@ def model_read_output(read_dump=True):
     state['day'] = state.index.day
     state['hour'] = state.index.hour
 
-
-    state = state[model_columns]
 
     smrt_out = xr.open_dataset(os.path.join(cfg.dir_exp,'output','out_smrt.nc')).to_dataframe()
     state = pd.concat([state, smrt_out], axis = 1)

@@ -1,1 +1,1 @@
-config_svs2_Powassan.py
+config_svs2_synth_exp.py

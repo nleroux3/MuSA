@@ -459,7 +459,7 @@ def simulation_steps(observations, dates_obs):
     elif (da_algorithm in ['PF', 'EnKF', 'IEnKF']):
         # HACK: I add one to easy the subset of the forcing
         assimilation_steps = obs_idx + 1
-    elif (da_algorithm == 'deterministic_OL'):
+    elif (da_algorithm == 'deterministic_OL') | (da_algorithm == 'ensemble_OL'):
         assimilation_steps = 0
     else:
         raise Exception("Choose between smoothing or filtering")
@@ -500,9 +500,7 @@ def run_model_openloop(lat_idx, lon_idx, main_forcing, filename):
 
         real_forcing = main_forcing.copy()
         model.configure_MESH_parameter(0, np.empty(0))
-        # Modify and write forcing with perturbation
         model.model_forcing_wrt(real_forcing, 0)
-
         model.model_run()
         # read model outputs, dump is a df containing the initial conditions for next step
         state, dump_tmp  = model.model_read_output()

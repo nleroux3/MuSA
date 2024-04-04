@@ -11,7 +11,7 @@ numerical_model = 'svs2'  # model to use from FSM2, dIm or snow17
 # Directories
 # -----------------------------------
 
-obs_file = "/home/nil005/store6/Driving_Data/Powassan_2022/data_assimilation/obs/obs.nc"
+obs_file = "/home/nil005/store6/Driving_Data/Powassan_2022/data_assimilation/obs/obs_synth_15.nc"
 intermediate_path = "./DATA/INTERMEDIATE/"
 file_forcing = '/home/nil005/store6/Driving_Data/Powassan_2022/data_assimilation/exp/basin_forcing_GEM_org.met'
 dir_exp = '/home/nil005/store6/Driving_Data/Powassan_2022/data_assimilation/exp/'
@@ -31,15 +31,15 @@ restart_forcing = False
 # Data Assim
 # -----------------------------------
 
-# da_algorithm from PF, EnKF, IEnKF, PBS, ES, IES, deterministic_OL,
+# da_algorithm from PF, EnKF, IEnKF, PBS, ES, IES, deterministic_OL, ensemble_OL,
 # IES-MCMC_AI, IES-MCMC, AdaMuPBS, AdaPBS or PIES
-da_algorithm = 'PBS'
+da_algorithm = 'ensemble_OL'
 redraw_prior = False  # PF and PBS only
 max_iterations = 4  # IEnKF, IES, IES-MCMC and AdaPBS
 # resampling_algorithm from "bootstrapping", residual_resample,
 # stratified_resample,  systematic_resample, no_resampling
-resampling_algorithm = "no_resampling"
-ensemble_members = 100
+resampling_algorithm = "stratified_resample"
+ensemble_members = 3
 Neffthrs = 0.1           # Low Neff threshold
 
 
@@ -54,11 +54,11 @@ burn_in = 0.1      # discard the first x proportion of samples
 # and time. If this option is selected, the errors will be stored in a new
 # variable in the observation files, and will have the same dimensions as
 # the observations.
-r_cov = [0.04]
+r_cov = [1]
 add_dynamic_noise = False
 
-# var_to_assim from "snd", "SWE", "Tsrf" from the output file from SVS2
-var_to_assim = ["snd"]
+# var_to_assim from "snd", "SWE", "Tsrf", 'sigma' from the output file from SVS2
+var_to_assim = ["sigma"]
 obs_error_var_names = ['sdError']  # In case of r_cov = 'dynamic_error'
 
 # DA second order variables and/or statistics (experimental)
@@ -69,7 +69,7 @@ DAord_names = ["Ampli"]
 vars_to_perturbate = ["TA", "PRE"]
 
 # Name of the variable to assimilate in the observation file
-obs_var_names = 'SD'
+obs_var_names = 'sigma'
 
 # In smoothers, re-draw new parameters for each season
 season_rejuvenation = [True, True]
