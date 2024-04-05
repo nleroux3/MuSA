@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Some functions to interact with FSM.
+Some functions to interact with SVS2.
 
-Author: Esteban Alonso González - alonsoe@ipe.csic.es
+Author: Niolas R. Leroux - nicolas.leroux@ec.g.ca
 """
 import os, pdb
 import shutil
@@ -27,6 +27,7 @@ import modules.internal_fns as ifn
 from statsmodels.stats.weightstats import DescrStatsW
 from metpy.calc import dewpoint_from_specific_humidity,wet_bulb_temperature
 from metpy.units import units
+from modules.generate_smrt_output import *
 
 if cfg.DAsord:
     from modules.user_optional_fns import snd_ord
@@ -54,7 +55,8 @@ def model_run():
     os.system(cfg.mesh_exe)
     print(current_dir)
     os.system("python "+current_dir+"/modules/generate_nc_output.py svs2")
-    os.system("python "+current_dir+"/modules/generate_smrt_output.py")
+    #os.system("python "+current_dir+"/modules/generate_smrt_output.py")
+    generate_smrt_output()
     os.chdir(current_dir)
 
 
@@ -80,6 +82,7 @@ def model_read_output(read_dump=True):
 
     smrt_out = xr.open_dataset(os.path.join(cfg.dir_exp,'output','out_smrt.nc')).to_dataframe()
     state = pd.concat([state, smrt_out], axis = 1)
+
 
     if read_dump:
          dump = pd.read_csv(os.path.join(cfg.dir_exp, 'output/restart_svs2.csv'), header = None,delimiter=r"\s+", names = range(50))

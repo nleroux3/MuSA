@@ -11,7 +11,7 @@ numerical_model = 'svs2'  # model to use from FSM2, dIm or snow17
 # Directories
 # -----------------------------------
 
-obs_file = "/home/nil005/store6/Driving_Data/Powassan_2022/data_assimilation/obs/obs_synth_15.nc"
+obs_file = "/home/nil005/store6/Driving_Data/Powassan_2022/data_assimilation/obs/obs_synth_mondays.nc"
 intermediate_path = "./DATA/INTERMEDIATE/"
 file_forcing = '/home/nil005/store6/Driving_Data/Powassan_2022/data_assimilation/exp/basin_forcing_GEM_org.met'
 dir_exp = '/home/nil005/store6/Driving_Data/Powassan_2022/data_assimilation/exp/'
@@ -33,14 +33,14 @@ restart_forcing = False
 
 # da_algorithm from PF, EnKF, IEnKF, PBS, ES, IES, deterministic_OL, ensemble_OL,
 # IES-MCMC_AI, IES-MCMC, AdaMuPBS, AdaPBS or PIES
-da_algorithm = 'ensemble_OL'
-redraw_prior = False  # PF and PBS only
+da_algorithm = 'PF'
+redraw_prior = True  # PF and PBS only
 max_iterations = 4  # IEnKF, IES, IES-MCMC and AdaPBS
 # resampling_algorithm from "bootstrapping", residual_resample,
 # stratified_resample,  systematic_resample, no_resampling
-resampling_algorithm = "stratified_resample"
-ensemble_members = 3
-Neffthrs = 0.1           # Low Neff threshold
+resampling_algorithm = "systematic_resample"
+ensemble_members = 2
+Neffthrs = 0.5           # Low Neff threshold
 
 
 # MCMC parameters

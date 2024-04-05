@@ -1,3 +1,14 @@
+# -----------------------------------
+# Physical constants
+# -----------------------------------
+
+sdfrac = 0.7                    # fraction of the sd_errors to use if collapse
+
+# -----------------------------------
+# Physical constants
+# -----------------------------------
+
+sdfrac = 0.7                    # fraction of the sd_errors to use if collapse
 
 # -----------------------------------
 # Mean errors

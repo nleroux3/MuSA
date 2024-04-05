@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Author: Esteban Alonso González - alonsoe@ipe.csic.es
+Updates: Nicolas R. Leroux  - nicolas.leroux@ec.gc.ca
 """
 
 import modules.internal_fns as ifn
@@ -47,7 +48,7 @@ def MuSA():
 
         print("Running the assimilation in a single point")
 
-        cell_assimilation(0,0)
+        cell_assimilation(0,2)
 
 
 
