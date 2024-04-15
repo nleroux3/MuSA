@@ -17,7 +17,7 @@ sdfrac = 0.7                    # fraction of the sd_errors to use if collapse
 mean_errors = {"PRE": -0.19,
             "TA": 0}
 sd_errors = { "PRE": 0.61,
-            "TA":1}
+            "TA":0.9}
 
 # -----------------------------------
 # Upper bounds errors
