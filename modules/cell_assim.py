@@ -87,7 +87,6 @@ def cell_assimilation(lat_idx, lon_idx):
     # initialice Ensemble class
     Ensemble = SnowEnsemble(lat_idx, lon_idx, time_dict)
 
-
     # Initialice Ensemble list if enabled in cfg
     if save_ensemble:
         ensemble_list = []
@@ -122,6 +121,8 @@ def cell_assimilation(lat_idx, lon_idx):
                 # deepcopy necesary to not to change all
                 Ensemble_tmp = copy.deepcopy(Ensemble)
                 ensemble_list.append(Ensemble_tmp)
+            # Concat all the vertical profiles from ensemble outputs
+            model.concat_netcdf_ensemble_outputs(lat_idx, lon_idx)
 
         else:
             step_results = flt.implement_assimilation(Ensemble, step)

@@ -93,8 +93,6 @@ class SnowEnsemble():
         self.errors = error_sbst.copy()
         self.forcing = forcing_sbst.copy()
 
-
-
         # Write init or dump file from previous run if step != 0
         if cfg.numerical_model in ['FSM2']:
 
@@ -127,7 +125,6 @@ class SnowEnsemble():
                 model.configure_MESH_parameter(self.step, self.origin_dump[step - 1])
             else:
                 model.configure_MESH_parameter(self.step, np.empty(0))
-
 
             # Modify and write forcing with perturbation
             model.model_forcing_wrt(forcing_sbst, self.step)
@@ -247,7 +244,7 @@ class SnowEnsemble():
                 else:
                     model.configure_MESH_parameter(self.step, np.empty(0))
 
-                model.model_run()
+                model.model_run(mbr)
                 # read model outputs, dump is a df containing the initial conditions for next step
                 state_tmp, dump_tmp = model.model_read_output()
 

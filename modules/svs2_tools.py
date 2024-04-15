@@ -3,10 +3,10 @@
 """
 Some functions to interact with SVS2.
 
-Author: Niolas R. Leroux - nicolas.leroux@ec.g.ca
+Author: Nicolas R. Leroux - nicolas.leroux@ec.g.ca
 """
 import os, pdb
-import shutil
+import shutil, glob
 import subprocess
 import tempfile
 import datetime as dt
@@ -28,6 +28,7 @@ from statsmodels.stats.weightstats import DescrStatsW
 from metpy.calc import dewpoint_from_specific_humidity,wet_bulb_temperature
 from metpy.units import units
 from modules.generate_smrt_output import *
+from modules.generate_nc_output import *
 
 if cfg.DAsord:
     from modules.user_optional_fns import snd_ord
@@ -48,22 +49,51 @@ def W19(Ta, QA, Pres):
 
     return fr
 
-def model_run():
+def model_run(mbr=-1):
 
     current_dir = os.getcwd()
     os.chdir(cfg.dir_exp)
     os.system(cfg.mesh_exe)
-    print(current_dir)
-    os.system("python "+current_dir+"/modules/generate_nc_output.py svs2")
-    #os.system("python "+current_dir+"/modules/generate_smrt_output.py")
-    generate_smrt_output()
     os.chdir(current_dir)
+    generate_nc_output()
+    generate_smrt_output()
+    if ((cfg.da_algorithm == "ensemble_OL") & (mbr >= 0)):
+        shutil.copyfile(os.path.join(cfg.dir_exp,'output','out_snow_vert.nc'), os.path.join(cfg.dir_exp,'output','out_snow_vert_'+str(mbr)+'.nc'))
+
+
+def concat_netcdf_ensemble_outputs(lat_idx, lon_idx):
+    # Concat all the vertical profiles at observation times
+    var_drop = ['SNOMA','SNODP','SNODEN','SNOALB','WSNO','TSNO_SURF','RSNOW_AC','RAINRATE','SNOWRATE','ISOIL','TPSOIL','WSOIL','TPSOILV']
+
+    ens_list = []
+    for num in range(cfg.ensemble_members):
+        mbr = xr.open_dataset(os.path.join(cfg.dir_exp,'output','out_snow_vert_{}.nc'.format(num)),drop_variables = var_drop)
+        ens_list.append(mbr)
+
+    # Remove all the files for clean up
+    files_vert = glob.glob(os.path.join(cfg.dir_exp,'output','out_snow_vert_*.nc'))
+    for file in files_vert:
+        os.remove(file)
+
+    # Concat all the vertical
+    ds = xr.concat(ens_list, dim='mbr', coords = 'all').drop_dims('soil_layer').assign_coords({"mbr": range(cfg.ensemble_members)})
+
+    # Import obs times and filter the output profiles on those datess
+    obs = xr.open_dataset(cfg.obs_file).to_dataframe()
+    times_obs = obs.index
+    ds = ds.sel(time=times_obs)
+
+    # Output combined netcdf
+    fileout = os.path.join(cfg.save_ensemble_path,'out_snow_vert_combined_'+str(lat_idx)+"_"+str(lon_idx)+'.nc')
+    try:
+        os.remove(fileout)
+    except OSError:
+        pass
+    ds.to_netcdf(fileout)
 
 
 
 def model_read_output(read_dump=True):
-
-
     mod = xr.open_dataset(os.path.join(cfg.dir_exp,'output','out_svs2.nc'))
 
     swe = mod['SNOMA'].to_dataframe('swe')
@@ -79,19 +109,14 @@ def model_read_output(read_dump=True):
     state['day'] = state.index.day
     state['hour'] = state.index.hour
 
-
     smrt_out = xr.open_dataset(os.path.join(cfg.dir_exp,'output','out_smrt.nc')).to_dataframe()
     state = pd.concat([state, smrt_out], axis = 1)
 
-
     if read_dump:
-         dump = pd.read_csv(os.path.join(cfg.dir_exp, 'output/restart_svs2.csv'), header = None,delimiter=r"\s+", names = range(50))
-
-    if read_dump:
-       return state, dump
+        dump = pd.read_csv(os.path.join(cfg.dir_exp, 'output/restart_svs2.csv'), header = None,delimiter=r"\s+", names = range(50))
+        return state, dump
     else:
        return state
-
 
 
 def get_var_state_position(var):
