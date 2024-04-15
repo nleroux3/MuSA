@@ -58,7 +58,7 @@ def model_run(mbr=-1):
     generate_nc_output()
     generate_smrt_output()
     if ((cfg.da_algorithm == "ensemble_OL") & (mbr >= 0)):
-        shutil.copyfile(os.path.join(cfg.dir_exp,'output','out_snow_vert.nc'), os.path.join(cfg.dir_exp,'output','out_snow_vert_'+str(mbr)+'.nc'))
+        shutil.copyfile(os.path.join(cfg.dir_exp,'output','out_svs2.nc'), os.path.join(cfg.dir_exp,'output','out_svs2_'+str(mbr)+'.nc'))
 
 
 def concat_netcdf_ensemble_outputs(lat_idx, lon_idx):
@@ -67,7 +67,7 @@ def concat_netcdf_ensemble_outputs(lat_idx, lon_idx):
 
     ens_list = []
     for num in range(cfg.ensemble_members):
-        mbr = xr.open_dataset(os.path.join(cfg.dir_exp,'output','out_snow_vert_{}.nc'.format(num)),drop_variables = var_drop)
+        mbr = xr.open_dataset(os.path.join(cfg.dir_exp,'output','out_svs2_{}.nc'.format(num)),drop_variables = var_drop)
         ens_list.append(mbr)
 
     # Remove all the files for clean up
