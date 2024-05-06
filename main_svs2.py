@@ -47,7 +47,6 @@ def MuSA():
     if cfg.implementation == "point_scale":
 
         print("Running the assimilation in a single point")
-
         cell_assimilation(0,2)
 
 

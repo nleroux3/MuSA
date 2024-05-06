@@ -42,7 +42,7 @@ def generate_encodings(data):
         encoding[var] = DEFAULT_ENCODING.copy()
     return encoding
                       
-def generate_smrt_output(freq):               
+def generate_smrt_output():               
     '''
     Roughness model: Geometrical Optics Backscatter model
     Permittivity model: static complexe permittivity values to optimize from C-band
@@ -56,7 +56,7 @@ def generate_smrt_output(freq):
 
              
     # Read simulation results
-    mod = xr.open_dataset(os.path.join(cfg.dir_exp,'output','out_svs2.nc'))
+    mod = xr.open_dataset(os.path.join(cfg.dir_exp,'Simulation_TestBed','sim_exp','output','out_svs2.nc'))
 
     df_soil = mod['TPSOIL'].to_dataframe() 
     df = mod[['SNODEN_ML','SNOMA_ML','TSNOW_ML','SNODOPT_ML','SNODP']].to_dataframe() 
@@ -80,58 +80,64 @@ def generate_smrt_output(freq):
                           
 
     # Get backscatter from SMRT from the times when we have snow profile outputs
-    sigma = []
+    sigma_13GHz = []
+    sigma_17GHz = []
     time_sigma = []
 
     for tt in times: # just the last time
-        d = df.loc[tt].copy()
+        d_time = df.loc[tt].copy()
 
         d_soil = df_soil.loc[tt]
-        d = d[d['SNOMA_ML'] > 0]  # Select only layers with a mass  
+        d_time = d_time[d_time['SNOMA_ML'] > 0]  # Select only layers with a mass  
 
-        if len(d) > 0: # If there is at least obe layer
+        if len(d_time) > 0: # If there is at least obe layer
 
-            sub = smrt.make_soil('geometrical_optics', 
+            sub = make_soil('geometrical_optics', 
                             permittivity_model = eps, 
                             mean_square_slope=mss, 
                             temperature = d_soil.iloc[0].values[0])
 
-            d['thickness'] = d[['SNODEN_ML','SNOMA_ML']].apply(lambda x : x[1] / x[0], axis = 1) 
-            d['SNOSSA_ML'] = d['SNODOPT_ML'].apply(lambda x: 6./(x * DENSITY_OF_ICE) if x>0 else 0) 
-            d['corr length'] = d[['SNODEN_ML','SNOSSA_ML']].apply(lambda x: debye_eqn(x[1], x[0]), axis = 1)
+            d_time['thickness'] = d_time[['SNODEN_ML','SNOMA_ML']].apply(lambda x : x[1] / x[0], axis = 1) 
+            d_time['SNOSSA_ML'] = d_time['SNODOPT_ML'].apply(lambda x: 6./(x * DENSITY_OF_ICE) if x>0 else 0) 
+            d_time['corr length'] = d_time[['SNODEN_ML','SNOSSA_ML']].apply(lambda x: debye_eqn(x[1], x[0]), axis = 1)
 
-            snowpack = make_snowpack(thickness = d['thickness'].values,
+            snowpack = make_snowpack(thickness = d_time['thickness'].values,
                                      microstructure_model = "exponential",
-                                     density = d['SNODEN_ML'].values,
-                                     temperature = d['TSNOW_ML'].values,
-                                     corr_length = d['corr length'],
-                                    substrate = sub)
+                                     density = d_time['SNODEN_ML'].values,
+                                     temperature = d_time['TSNOW_ML'].values,
+                                     corr_length = d_time['corr length'],
+                                     substrate = sub)
 
             #Modeling theories to use in SMRT
             model = make_model("iba", "dort", rtsolver_options = {'error_handling':'nan', 'phase_normalization' : True})
 
-
-            sensor  = sensor_list.active(freq, 35)
+            sensor_13GHz  = sensor_list.active(13e9, 35)
+            sensor_17GHz  = sensor_list.active(17e9, 35)
 
             #run the model
-            result = model.run(sensor, snowpack, parallel_computation=False)
+            result_13GHz = model.run(sensor_13GHz, snowpack, parallel_computation=False)
+            result_17GHz = model.run(sensor_17GHz, snowpack, parallel_computation=False)
 
-            sigma.append(to_dB(result.sigmaVV()))
+            sigma_13GHz.append(to_dB(result_13GHz.sigmaVV()))
+            sigma_17GHz.append(to_dB(result_17GHz.sigmaVV()))
             time_sigma.append(tt)
         else:
-            sigma.append(-999.)
+
+            sigma_13GHz.append(-999.)
+            sigma_17GHz.append(-999.)
             time_sigma.append(tt)
 
 
                              
     smrt = pd.DataFrame()
     smrt['time'] = time_sigma
-    smrt['sigma'] = sigma
+    smrt['sigma_13GHz'] = sigma_13GHz
+    smrt['sigma_17GHz'] = sigma_17GHz
     smrt = smrt.set_index('time')
     smrt_xr = smrt.to_xarray()
                              
     # Write netcdf   
     encoding = generate_encodings(smrt_xr) 
     netcdf_file_out = 'out_smrt.nc'
-    smrt_xr.to_netcdf(os.path.join(cfg.dir_exp,'output',netcdf_file_out))
+    smrt_xr.to_netcdf(os.path.join(cfg.dir_exp,'Simulation_TestBed','sim_exp','output',netcdf_file_out))
 

@@ -1,26 +1,35 @@
+# -----------------------------------
+# Physical constants
+# -----------------------------------
+
+sdfrac = 0.7                    # fraction of the sd_errors to use if collapse
+
 
 # -----------------------------------
 # Mean errors
 # -----------------------------------
 
-mean_errors = {"PRE": -1.6,
+mean_errors = {"PRE": 0,
             "TA": 0}
-sd_errors = { "PRE": 1,
-            "TA": 0.5}
+sd_errors = { "PRE": 0.4,
+            "TA":0.9}
 
 # -----------------------------------
 # Upper bounds errors
 # -----------------------------------
 
-upper_bounds = {"PRE": 8,
-                "TA": 8}
+# If strategy is normal or lognormal, bounds apply to the perturbed variables
+# If strategy is  "logitnormal_mult","logitnormal_adi", bounds applied to the noie
+
+upper_bounds = {"PRE": 10./3600.,
+                "TA": 40}
 
 # -----------------------------------
 # Lower bounds errors
 # -----------------------------------
 
 lower_bounds = {"PRE": 0,
-                "TA": -8}
+                "TA": -50}
 
 
 # -----------------------------------

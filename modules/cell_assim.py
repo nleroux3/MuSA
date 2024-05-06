@@ -35,7 +35,10 @@ def cell_assimilation(lat_idx, lon_idx):
 
     save_ensemble = cfg.save_ensemble
 
-    filename = ("cell_" + str(lat_idx) + "_" + str(lon_idx) + ".pkl.blp")
+    try:  # If name_output is not defined in the config file
+        filename = (cfg.name_output + ".pkl.blp")
+    except:
+        filename = ("cell_" + str(lat_idx) + "_" + str(lon_idx) + ".pkl.blp")
     filename = os.path.join(cfg.output_path, filename)
 
     # Check if file allready exist if is a restart run
@@ -200,7 +203,11 @@ def cell_assimilation(lat_idx, lon_idx):
 
     # Save ensemble
     if save_ensemble:
-        name_ensemble = "ensbl_" + str(lat_idx) +\
-            "_" + str(lon_idx) + ".pkl.blp"
+        try: # If name_ensemble_output is defined
+            name_ensemble = cfg.name_ensemble_output + ".pkl.blp"
+        except:
+            name_ensemble = "ensbl_" + str(lat_idx) +\
+                "_" + str(lon_idx) + ".pkl.blp"
+
         name_ensemble = os.path.join(cfg.save_ensemble_path, name_ensemble)
         ifn.io_write(name_ensemble, ensemble_list)

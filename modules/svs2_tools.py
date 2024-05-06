@@ -35,7 +35,7 @@ if cfg.DAsord:
 # TODO: homogenize documentation format
 
 forcing_columns = ['HOUR', 'MINS', 'JDAY', 'YEAR', 'FSIN', 'FLIN', 'PRE', 'TA', 'QA', 'UV', 'PRES', 'PRERN', 'PRESNO']
-model_columns = ["year", "month", "day", "hour", "snd", "SWE", "Tsrf", "alb","sigma"]
+model_columns = ["year", "month", "day", "hour", "snd", "SWE", "Tsrf", "alb","sigma_13GHz","sigma_17GHz"]
 
 
 def W19(Ta, QA, Pres):
@@ -52,13 +52,13 @@ def W19(Ta, QA, Pres):
 def model_run(mbr=-1):
 
     current_dir = os.getcwd()
-    os.chdir(cfg.dir_exp)
+    os.chdir(os.path.join(cfg.dir_exp,'Simulation_TestBed','sim_exp'))
     os.system(cfg.mesh_exe)
     os.chdir(current_dir)
     generate_nc_output()
     generate_smrt_output()
     if ((cfg.da_algorithm == "ensemble_OL") & (mbr >= 0)):
-        shutil.copyfile(os.path.join(cfg.dir_exp,'output','out_svs2.nc'), os.path.join(cfg.dir_exp,'output','out_svs2_'+str(mbr)+'.nc'))
+        shutil.copyfile(os.path.join(cfg.dir_exp,'Simulation_TestBed','sim_exp','output','out_svs2.nc'), os.path.join(cfg.dir_exp,'Simulation_TestBed','sim_exp','output','out_svs2_'+str(mbr)+'.nc'))
 
 
 def concat_netcdf_ensemble_outputs(lat_idx, lon_idx):
@@ -67,11 +67,11 @@ def concat_netcdf_ensemble_outputs(lat_idx, lon_idx):
 
     ens_list = []
     for num in range(cfg.ensemble_members):
-        mbr = xr.open_dataset(os.path.join(cfg.dir_exp,'output','out_svs2_{}.nc'.format(num)),drop_variables = var_drop)
+        mbr = xr.open_dataset(os.path.join(cfg.dir_exp,'Simulation_TestBed','sim_exp','output','out_svs2_{}.nc'.format(num)),drop_variables = var_drop)
         ens_list.append(mbr)
 
     # Remove all the files for clean up
-    files_vert = glob.glob(os.path.join(cfg.dir_exp,'output','out_snow_vert_*.nc'))
+    files_vert = glob.glob(os.path.join(cfg.dir_exp,'Simulation_TestBed','sim_exp','output','out_snow_vert_*.nc'))
     for file in files_vert:
         os.remove(file)
 
@@ -84,7 +84,7 @@ def concat_netcdf_ensemble_outputs(lat_idx, lon_idx):
     ds = ds.sel(time=times_obs)
 
     # Output combined netcdf
-    fileout = os.path.join(cfg.save_ensemble_path,'out_snow_vert_combined_'+str(lat_idx)+"_"+str(lon_idx)+'.nc')
+    fileout = os.path.join(cfg.save_ensemble_path,cfg.name_vert_profiles_output+'.nc')
     try:
         os.remove(fileout)
     except OSError:
@@ -94,7 +94,7 @@ def concat_netcdf_ensemble_outputs(lat_idx, lon_idx):
 
 
 def model_read_output(read_dump=True):
-    mod = xr.open_dataset(os.path.join(cfg.dir_exp,'output','out_svs2.nc'))
+    mod = xr.open_dataset(os.path.join(cfg.dir_exp,'Simulation_TestBed','sim_exp','output','out_svs2.nc'))
 
     swe = mod['SNOMA'].to_dataframe('swe')
     sd = mod['SNODP'].to_dataframe('snd')
@@ -109,11 +109,11 @@ def model_read_output(read_dump=True):
     state['day'] = state.index.day
     state['hour'] = state.index.hour
 
-    smrt_out = xr.open_dataset(os.path.join(cfg.dir_exp,'output','out_smrt.nc')).to_dataframe()
+    smrt_out = xr.open_dataset(os.path.join(cfg.dir_exp,'Simulation_TestBed','sim_exp','output','out_smrt.nc')).to_dataframe()
     state = pd.concat([state, smrt_out], axis = 1)
 
     if read_dump:
-        dump = pd.read_csv(os.path.join(cfg.dir_exp, 'output/restart_svs2.csv'), header = None,delimiter=r"\s+", names = range(50))
+        dump = pd.read_csv(os.path.join(cfg.dir_exp,'Simulation_TestBed','sim_exp', 'output/restart_svs2.csv'), header = None,delimiter=r"\s+", names = range(50))
         return state, dump
     else:
        return state
@@ -137,28 +137,31 @@ def model_forcing_wrt(forcing_df, step=0):
     PRERN = PRE * frac_liq
     met_forcing_temp['PRESNO'] = PRESNO
     met_forcing_temp['PRERN'] = PRERN
-    met_forcing_temp.to_csv(os.path.join(cfg.dir_exp,'basin_forcing.met'), sep = ' ', index = False, header = False)
+    met_forcing_temp.to_csv(os.path.join(cfg.dir_exp,'Simulation_TestBed','sim_exp','basin_forcing.met'), sep = ' ', index = False, header = False)
 
 def configure_MESH_parameter(step, dump):
 
     if step == 0: # Initial run
-        os.system('cp '+cfg.dir_exp+'MESH_parameters_stop.txt '+cfg.dir_exp+'/MESH_parameters.txt')
+        os.system('cp '+cfg.dir_exp+'/exp_cfg/param_file/MESH_parameters_stop.txt '+cfg.dir_exp+'/Simulation_TestBed/sim_exp/MESH_parameters.txt')
     else:
 
-        os.system('cp '+cfg.dir_exp+'MESH_parameters_restart.txt '+cfg.dir_exp+'/MESH_parameters.txt')
-        dump.to_csv(os.path.join(cfg.dir_exp, 'MESH_parameters.txt'), mode = 'a', index = False, header=False, sep = '\t')
+        os.system('cp '+cfg.dir_exp+'exp_cfg/param_file/MESH_parameters_restart.txt '+cfg.dir_exp+'/Simulation_TestBed/sim_exp/MESH_parameters.txt')
+        dump.to_csv(os.path.join(cfg.dir_exp, 'Simulation_TestBed/sim_exp','MESH_parameters.txt'), mode = 'a', index = False, header=False, sep = '\t')
 
 def configure_options_ini_parameter(step, time_dict):
 
+    os.system('cp '+cfg.dir_exp+'/exp_cfg/MESH_input_soil_levels.txt '+cfg.dir_exp+'/Simulation_TestBed/sim_exp/MESH_input_soil_levels.txt')
     if step == 0:
         time = time_dict['del_t'][time_dict["Assimilaiton_steps"][step]:
                                     time_dict["Assimilaiton_steps"][step + 1]+1]
 
         time_end = time[-1]
 
+        DATEINI = dt.datetime.strptime(cfg.date_ini, "%Y-%m-%d %H:%M").strftime('%Y%m%d%H')
+
         os.system('sed "s/year_start/0/g  ; s/day_start/0/g  ; s/hour_start/0/g ; \
-            s/year_end/'+str(time_end.year)+'/g  ; s/day_end/'+str(time_end.timetuple().tm_yday)+'/g  ; s/hour_end/'+str(time_end.hour)+'/g" '+\
-            cfg.dir_exp+'/MESH_input_run_options_gen.ini>  '+cfg.dir_exp+'MESH_input_run_options.ini')
+            s/year_end/'+str(time_end.year)+'/g  ; s/day_end/'+str(time_end.timetuple().tm_yday)+'/g  ; s/hour_end/'+str(time_end.hour)+'/g \
+            ; s/DATEINI/'+str(DATEINI)+'/g" '+cfg.dir_exp+'/exp_cfg/MESH_input_run_options_gen.ini>  '+cfg.dir_exp+'/Simulation_TestBed/sim_exp/MESH_input_run_options.ini')
 
 
     else:
@@ -169,11 +172,11 @@ def configure_options_ini_parameter(step, time_dict):
         time_start = time[0]
         time_end = time[-1]
 
-
+        DATEINI = dt.datetime.strptime(cfg.date_ini, "%Y-%m-%d %H:%M").strftime('%Y%m%d%H')
 
         os.system('sed "s/year_start/'+str(time_start.year)+'/g  ; s/day_start/'+str(time_start.timetuple().tm_yday)+'/g  ; s/hour_start/'+str(time_start.hour)+'/g ; \
-            s/year_end/'+str(time_end.year)+'/g  ; s/day_end/'+str(time_end.timetuple().tm_yday)+'/g  ; s/hour_end/'+str(time_end.hour)+'/g" '+\
-            cfg.dir_exp+'/MESH_input_run_options_gen.ini>  '+cfg.dir_exp+'MESH_input_run_options.ini')
+            s/year_end/'+str(time_end.year)+'/g  ; s/day_end/'+str(time_end.timetuple().tm_yday)+'/g  ; s/hour_end/'+str(time_end.hour)+'/g\
+            ; s/DATEINI/'+str(DATEINI)+'/g" '+ cfg.dir_exp+'/exp_cfg/MESH_input_run_options_gen.ini>  '+cfg.dir_exp+'/Simulation_TestBed/sim_exp/MESH_input_run_options.ini')
 
 
 
@@ -192,7 +195,7 @@ def write_dump(dump):
 
     """
     dump_copy = dump.copy()
-    file_name = os.path.join(cfg.dir_exp,'output', "out_dump")
+    file_name = os.path.join(cfg.dir_exp,'Simulation_TestBed','sim_exp','output', "out_dump")
     dump_copy.iloc[2, 0] = str(int(dump_copy.iloc[2, 0]))
     dump_copy.to_csv(file_name, header=None, index=None, sep=' ', mode='w',
                      na_rep='NaN')

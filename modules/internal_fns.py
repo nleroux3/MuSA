@@ -131,7 +131,7 @@ def get_dates_obs():
         dates_obs = ds.time.values
         dates_obs.sort()
 
-        date_ini = dt.datetime.strptime(cfg.date_ini, "%Y-%m-%d %H:%M")
+        date_ini = dt.datetime.strptime(cfg.date_ini, "%Y-%m-%d %H:%M") + dt.timedelta(hours=0)
         date_end = dt.datetime.strptime(cfg.date_end, "%Y-%m-%d %H:%M")
 
         dates_obs = pd.to_datetime(dates_obs)
@@ -167,7 +167,7 @@ def obs_array(dates_obs, lat_idx, lon_idx):
 
     if cfg.numerical_model == 'svs2':
 
-        date_ini = dt.datetime.strptime(cfg.date_ini, "%Y-%m-%d %H:%M")
+        date_ini = dt.datetime.strptime(cfg.date_ini, "%Y-%m-%d %H:%M") + dt.timedelta(hours=0)
         date_end = dt.datetime.strptime(cfg.date_end, "%Y-%m-%d %H:%M")
 
         del_t = generate_dates(date_ini, date_end)
@@ -196,7 +196,7 @@ def obs_array(dates_obs, lat_idx, lon_idx):
         date_end = cfg.date_end
         r_cov = cfg.r_cov
 
-        date_ini = dt.datetime.strptime(date_ini, "%Y-%m-%d %H:%M")
+        date_ini = dt.datetime.strptime(date_ini, "%Y-%m-%d %H:%M") + dt.timedelta(hours=0)
         date_end = dt.datetime.strptime(date_end, "%Y-%m-%d %H:%M")
         del_t = generate_dates(date_ini, date_end)
 
@@ -326,7 +326,7 @@ def nc_array_forcing(nc_forcing_path, lat_idx, lon_idx, nc_var_name,
         Array of forcing timesteps.
     """
 
-    date_ini = dt.datetime.strptime(date_ini, "%Y-%m-%d %H:%M")
+    date_ini = dt.datetime.strptime(date_ini, "%Y-%m-%d %H:%M") + + dt.timedelta(hours=0)
     date_end = dt.datetime.strptime(date_end, "%Y-%m-%d %H:%M")
     del_t = generate_dates(date_ini, date_end)
 
@@ -429,7 +429,7 @@ def simulation_steps(observations, dates_obs):
     season_ini_month = cfg.season_ini_month
     da_algorithm = cfg.da_algorithm
 
-    date_ini = dt.datetime.strptime(date_ini, "%Y-%m-%d %H:%M")
+    date_ini = dt.datetime.strptime(date_ini, "%Y-%m-%d %H:%M") + dt.timedelta(hours=0)
     date_end = dt.datetime.strptime(date_end, "%Y-%m-%d %H:%M")
     del_t = generate_dates(date_ini, date_end)
 

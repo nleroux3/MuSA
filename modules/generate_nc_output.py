@@ -27,7 +27,7 @@ def generate_nc_output():
     # Go to exp directory
 
     # Get list of files containing SVS outputs
-    list_fic = glob.glob(os.path.join(cfg.dir_exp,'output',lss+'*.csv'))
+    list_fic = glob.glob(os.path.join(cfg.dir_exp,'Simulation_TestBed','sim_exp','output',lss+'*.csv'))
 
     for ific,fic in enumerate(list_fic):
 
@@ -76,7 +76,7 @@ def generate_nc_output():
                     lis_layer = np.arange(0,nlayer)
                     yy=np.zeros((len(da_sel.time),nlayer))
 
-                    if(var in ['TGROUND','TVEG']):
+                    if(var in ['TGROUND']):
                         name_layer = 'fr_layer'
                     else:
                         name_layer = fic_type+'_layer'
@@ -128,5 +128,5 @@ def generate_nc_output():
     # Write netcdf
     encoding = generate_encodings(ref)
     netcdf_file_out = 'out_'+lss+'.nc'
-    ref.to_netcdf(cfg.dir_exp+'output/'+netcdf_file_out)
+    ref.to_netcdf(cfg.dir_exp+'/Simulation_TestBed/sim_exp/output/'+netcdf_file_out)
 
