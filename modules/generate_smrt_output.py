@@ -11,6 +11,8 @@ import sys
 sys.path.append('/fs/homeu2/eccc/mrd/ords/rpnenv/nil005/Codes/smrt')
 #from smrt.core.globalconstants import DENSITY_OF_ICE
 from smrt import sensor_list, make_model, make_snowpack, make_soil
+from smrt.emmodel.iba import derived_IBA
+from smrt.permittivity.snow_mixing_formula import wetsnow_permittivity_memls as memls
 
 DENSITY_OF_ICE = 917.
 
@@ -51,7 +53,7 @@ def generate_smrt_output():
     #use dummy values for now
     sig_soil = 0.01
     lc_soil = 0.1
-    eps = complex(3.5, 0.1)
+    eps = complex(2.5, 0.1)
     mss=2*(sig_soil/lc_soil)**2
 
              
@@ -109,7 +111,9 @@ def generate_smrt_output():
                                      substrate = sub)
 
             #Modeling theories to use in SMRT
-            model = make_model("iba", "dort", rtsolver_options = {'error_handling':'nan', 'phase_normalization' : True})
+            model = make_model(derived_IBA(memls), "dort", rtsolver_options=dict(diagonalization_method="shur_forcedtriu",
+                                                                    error_handling='nan'),
+                                              emmodel_options=dict(dense_snow_correction='auto'))
 
             sensor_13GHz  = sensor_list.active(13e9, 35)
             sensor_17GHz  = sensor_list.active(17e9, 35)
