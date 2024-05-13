@@ -35,7 +35,7 @@ if cfg.DAsord:
 # TODO: homogenize documentation format
 
 forcing_columns = ['HOUR', 'MINS', 'JDAY', 'YEAR', 'FSIN', 'FLIN', 'PRE', 'TA', 'QA', 'UV', 'PRES', 'PRERN', 'PRESNO']
-model_columns = ["year", "month", "day", "hour", "snd", "SWE", "Tsrf", "alb","sigma_13GHz","sigma_17GHz"]
+model_columns = ["year", "month", "day", "hour", "snd", "SWE", "Tsrf", "alb","sigma_13GHz","sigma_17GHz",'sigma_diff_13_17','sigma_diff_17_13']
 
 
 def W19(Ta, QA, Pres):
