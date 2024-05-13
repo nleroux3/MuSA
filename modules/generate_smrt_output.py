@@ -92,7 +92,7 @@ def generate_smrt_output():
         d_soil = df_soil.loc[tt]
         d_time = d_time[d_time['SNOMA_ML'] > 0]  # Select only layers with a mass  
 
-        if len(d_time) > 0: # If there is at least obe layer
+        if len(d_time) > 0.1: # If there is at least one layer
 
             sub = make_soil('geometrical_optics', 
                             permittivity_model = eps, 
@@ -137,6 +137,8 @@ def generate_smrt_output():
     smrt['time'] = time_sigma
     smrt['sigma_13GHz'] = sigma_13GHz
     smrt['sigma_17GHz'] = sigma_17GHz
+    smrt['sigma_diff_13_17'] = smrt['sigma_13GHz'].values - smrt['sigma_17GHz'].values
+    smrt['sigma_diff_17_13'] = smrt['sigma_17GHz'].values - smrt['sigma_13GHz'].values
     smrt = smrt.set_index('time')
     smrt_xr = smrt.to_xarray()
                              

@@ -13,7 +13,7 @@ numerical_model = 'svs2'  # model to use from FSM2, dIm or snow17
 
 obs_file = 'OBS_FILE'
 intermediate_path = "./DATA/INTERMEDIATE/"
-file_forcing = '/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/Input_MESH/basin_forcing_Powassan_2223.met'
+file_forcing = '/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/Input_MESH/basin_forcing_TVC_1819.met'
 dir_exp = '/home/nil005/store6/Driving_Data/MuSA_PF/'
 save_ensemble_path = "/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/output_PF/"
 output_path = "/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/output_PF/"
@@ -110,10 +110,16 @@ nprocess = 8  # Note: if None, the number of processors will be estimated
 #aws_lat = 4735225.54  # Latitude in case of point_scale
 #aws_lon = 710701.28   # Longitude in case of point_scale
 
-date_ini = "2022-09-01 07:00" # 1h after first time in the basin_forcing
-date_end = "2023-06-15 00:00"
+date_ini = "2018-09-01 07:00" # 1h after first time in the basin_forcing
+date_end = "2019-06-15 00:00"
 
 season_ini_month = 9  # In smoothers, beginning of DA window (month)
 season_ini_day = 1    # In smoothers, beginning of DA window (day)
+
+
+
+
+
+
 
 
