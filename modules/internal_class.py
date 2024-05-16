@@ -178,6 +178,9 @@ class SnowEnsemble():
                             met.perturb_parameters(forcing_sbst,
                                                    noise=noise_tmp,
                                                    update=True)
+                    elif (cfg.redraw_scratch):
+                        member_forcing, noise_tmp = \
+                            met.perturb_parameters(forcing_sbst)
 
                     else:
                         # Use the posterior parameters
@@ -190,15 +193,19 @@ class SnowEnsemble():
                                                    noise=noise_tmp,
                                                    update=True)
                 else:
-                    # if kalman is used, use the posterior noise of the
-                    # previous run
-                    noise_tmp = list(self.noise_iter[mbr].values())
-                    noise_tmp = np.vstack(noise_tmp)
-                    # Take last perturbation values
-                    noise_tmp = noise_tmp[:, np.shape(noise_tmp)[1] - 1]
-                    member_forcing, noise_tmp = \
-                        met.perturb_parameters(forcing_sbst,
-                                               noise=noise_tmp, update=True)
+                    if (cfg.redraw_scratch):
+                        member_forcing, noise_tmp = \
+                            met.perturb_parameters(forcing_sbst)
+                    else:
+                        # if kalman is used, use the posterior noise of the
+                        # previous run
+                        noise_tmp = list(self.noise_iter[mbr].values())
+                        noise_tmp = np.vstack(noise_tmp)
+                        # Take last perturbation values
+                        noise_tmp = noise_tmp[:, np.shape(noise_tmp)[1] - 1]
+                        member_forcing, noise_tmp = \
+                            met.perturb_parameters(forcing_sbst,
+                                                   noise=noise_tmp, update=True)
 
             # write perturbed forcing
             if cfg.numerical_model in ['FSM2']:

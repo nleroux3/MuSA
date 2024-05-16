@@ -37,7 +37,8 @@ restart_forcing = False
 # da_algorithm from PF, EnKF, IEnKF, PBS, ES, IES, deterministic_OL, ensemble_OL,
 # IES-MCMC_AI, IES-MCMC, AdaMuPBS, AdaPBS or PIES
 da_algorithm = 'DA_ALGORITHM'
-redraw_prior = True  # PF and PBS only
+redraw_prior = False  # PF and PBS only
+redraw_scratch = True  # redraw using the variables from the constant file
 max_iterations = 4  # IEnKF, IES, IES-MCMC and AdaPBS
 # resampling_algorithm from "bootstrapping", residual_resample,
 # stratified_resample,  systematic_resample, no_resampling

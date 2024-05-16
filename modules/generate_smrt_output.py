@@ -54,7 +54,7 @@ def generate_smrt_output():
     sig_soil = 0.01
     lc_soil = 0.1
     eps = complex(2.5, 0.1)
-    mss=2*(sig_soil/lc_soil)**2
+    mss=2.*(sig_soil/lc_soil)**2
 
              
     # Read simulation results
@@ -84,6 +84,7 @@ def generate_smrt_output():
     # Get backscatter from SMRT from the times when we have snow profile outputs
     sigma_13GHz = []
     sigma_17GHz = []
+    sigma_5p4GHz = []
     time_sigma = []
 
     for tt in times: # just the last time
@@ -92,7 +93,7 @@ def generate_smrt_output():
         d_soil = df_soil.loc[tt]
         d_time = d_time[d_time['SNOMA_ML'] > 0]  # Select only layers with a mass  
 
-        if len(d_time) > 0.1: # If there is at least one layer
+        if len(d_time) > 0.: # If there is at least one layer
 
             sub = make_soil('geometrical_optics', 
                             permittivity_model = eps, 
@@ -115,20 +116,27 @@ def generate_smrt_output():
                                                                     error_handling='nan'),
                                               emmodel_options=dict(dense_snow_correction='auto'))
 
+            #model = make_model("iba", "dort", rtsolver_options = {'error_handling':'nan', 'phase_normalization' : True})
+
+
             sensor_13GHz  = sensor_list.active(13e9, 35)
             sensor_17GHz  = sensor_list.active(17e9, 35)
+            sensor_5p4GHz  = sensor_list.active(5.4e9, 35)
 
             #run the model
             result_13GHz = model.run(sensor_13GHz, snowpack, parallel_computation=False)
             result_17GHz = model.run(sensor_17GHz, snowpack, parallel_computation=False)
+            result_5p4GHz = model.run(sensor_5p4GHz, snowpack, parallel_computation=False)
 
             sigma_13GHz.append(to_dB(result_13GHz.sigmaVV()))
             sigma_17GHz.append(to_dB(result_17GHz.sigmaVV()))
+            sigma_5p4GHz.append(to_dB(result_5p4GHz.sigmaVV()))
             time_sigma.append(tt)
         else:
 
             sigma_13GHz.append(-999.)
             sigma_17GHz.append(-999.)
+            sigma_5p4GHz.append(-999.)
             time_sigma.append(tt)
 
 
@@ -137,8 +145,10 @@ def generate_smrt_output():
     smrt['time'] = time_sigma
     smrt['sigma_13GHz'] = sigma_13GHz
     smrt['sigma_17GHz'] = sigma_17GHz
+    smrt['sigma_5p4GHz'] = sigma_5p4GHz
     smrt['sigma_diff_13_17'] = smrt['sigma_13GHz'].values - smrt['sigma_17GHz'].values
-    smrt['sigma_diff_17_13'] = smrt['sigma_17GHz'].values - smrt['sigma_13GHz'].values
+    smrt['sigma_diff_13_5p4'] = smrt['sigma_13GHz'].values - smrt['sigma_5p4GHz'].values
+    smrt['sigma_diff_17_5p4'] = smrt['sigma_17GHz'].values - smrt['sigma_5p4GHz'].values
     smrt = smrt.set_index('time')
     smrt_xr = smrt.to_xarray()
                              

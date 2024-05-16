@@ -7,6 +7,7 @@ other parameters related with the snowpack
 Author: Esteban Alonso González - alonsoe@ipe.csic.es
 """
 import numpy as np
+import pdb
 from scipy.optimize import newton
 from scipy.special import expit, logit
 import constants as cnt
@@ -233,34 +234,20 @@ def perturb_parameters(main_forcing, lat_idx=None, lon_idx=None, member=None,
                                       var_tmp)
 
         noise_coef = add_process_noise(noise_coef, var_tmp, strategy_tmp)
+
+        bPmax = cnt.upper_bounds[var_tmp]
+        bPmin = cnt.lower_bounds[var_tmp]
+    
+        # Bound the noise
+        noise_coef = np.maximum(noise_coef, bPmin)
+        noise_coef = np.minimum(noise_coef, bPmax)
+
+
         # If lognormal perturbation multiplicate, else add
         if strategy_tmp in ["lognormal", "logitnormal_mult"]:
             forcing_copy[var_tmp] = forcing_copy[var_tmp].values * noise_coef
-
-            if strategy_tmp in ["lognormal"]:
-                bPmax = cnt.upper_bounds[var_tmp]
-                bPmin = cnt.lower_bounds[var_tmp]
-
-                # Bound the perturbed forcings
-                forcing_values = forcing_copy[var_tmp].values
-                forcing_values[forcing_values > bPmax] = bPmax
-                forcing_values[forcing_values < bPmin] = bPmin
-
-                forcing_copy[var_tmp] = forcing_values
-
         else:
             forcing_copy[var_tmp] = forcing_copy[var_tmp].values + noise_coef
-
-            if strategy_tmp in ["normal"]:
-                bPmax = cnt.upper_bounds[var_tmp]
-                bPmin = cnt.lower_bounds[var_tmp]
-
-                # Bound the perturbed forcings
-                forcing_values = forcing_copy[var_tmp].values
-                forcing_values[forcing_values > bPmax] = bPmax
-                forcing_values[forcing_values < bPmin] = bPmin
-
-                forcing_copy[var_tmp] = forcing_values
 
         # store the noise
         noise_storage[var_tmp] = noise_coef

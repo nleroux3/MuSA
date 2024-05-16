@@ -21,15 +21,15 @@ sd_errors = { "PRE": 0.4,
 # If strategy is normal or lognormal, bounds apply to the perturbed variables
 # If strategy is  "logitnormal_mult","logitnormal_adi", bounds applied to the noie
 
-upper_bounds = {"PRE": 10./3600.,
-                "TA": 40}
+upper_bounds = {"PRE": 3,
+                "TA": 3}
 
 # -----------------------------------
 # Lower bounds errors
 # -----------------------------------
 
 lower_bounds = {"PRE": 0,
-                "TA": -50}
+                "TA": -3}
 
 
 # -----------------------------------
