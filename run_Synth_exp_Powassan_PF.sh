@@ -25,7 +25,7 @@ NAME_ENSEMBLE_OUTPUT='ensbl_Powassan_OL_2times'
 NAME_VERT_PROFILES_OUTPUT='out_snow_vert_Powassan_OL_2times'
 
 
-sed "s|OBS_FILE|$OBS_FILE|g; s|NAME_OUTPUT|$NAME_OUTPUT|g; s|NAME_ENSEMBLE_OUTPUT|$NAME_ENSEMBLE_OUTPUT|g; s|NAME_VERT_PROFILES_OUTPUT|$NAME_VERT_PROFILES_OUTPUT|g; s|DA_ALGORITHM|$DA_ALGORITHM|g; s|NB_MEMBERS|$NB_MEMBERS|g ; s|VAR_ASSIM|$VAR_ASSIM|g" config_svs2_Powassan_synth_exp.py >  config.py
+sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g" config_svs2_Powassan_synth_exp.py >  config.py
 
 ### Run the data assimilation
 python main_svs2.py
@@ -45,10 +45,10 @@ NAME_ENSEMBLE_OUTPUT='ensbl_Powassan_PF_13GHz_2times'
 NAME_VERT_PROFILES_OUTPUT='out_snow_vert_Powassan_PF_13GHz_2times'
 
 
-sed "s|OBS_FILE|$OBS_FILE|g; s|NAME_OUTPUT|$NAME_OUTPUT|g; s|NAME_ENSEMBLE_OUTPUT|$NAME_ENSEMBLE_OUTPUT|g; s|NAME_VERT_PROFILES_OUTPUT|$NAME_VERT_PROFILES_OUTPUT|g; s|DA_ALGORITHM|$DA_ALGORITHM|g; s|NB_MEMBERS|$NB_MEMBERS|g ; s|VAR_ASSIM|$VAR_ASSIM|g" config_svs2_Powassan_synth_exp.py >  config.py
+sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g" config_svs2_Powassan_synth_exp.py >  config.py
 
 ### Run the data assimilation
-python main_svs2.py
+#python main_svs2.py
 
 ##########################################################
 ## Assimilating sigma_17GHz
@@ -64,12 +64,12 @@ NAME_ENSEMBLE_OUTPUT='ensbl_Powassan_PF_17GHz_2times'
 NAME_VERT_PROFILES_OUTPUT='out_snow_vert_Powassan_PF_17GHz_2times'
 
 
-sed "s|OBS_FILE|$OBS_FILE|g; s|NAME_OUTPUT|$NAME_OUTPUT|g; s|NAME_ENSEMBLE_OUTPUT|$NAME_ENSEMBLE_OUTPUT|g; s|NAME_VERT_PROFILES_OUTPUT|$NAME_VERT_PROFILES_OUTPUT|g; s|DA_ALGORITHM|$DA_ALGORITHM|g; s|NB_MEMBERS|$NB_MEMBERS|g ; s|VAR_ASSIM|$VAR_ASSIM|g" config_svs2_Powassan_synth_exp.py >  config.py
+sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g" config_svs2_Powassan_synth_exp.py >  config.py
 
 
 
 ### Run the data assimilation
-python main_svs2.py
+#python main_svs2.py
 
 
 ##########################################################
@@ -84,11 +84,10 @@ NAME_OUTPUT='cell_Powassan_PF_diff_13_17_2times'
 NAME_ENSEMBLE_OUTPUT='ensbl_Powassan_PF_diff_13_17_2times' 
 NAME_VERT_PROFILES_OUTPUT='out_snow_vert_Powassan_PF_diff_13_17_2times'
 
-
-sed "s|OBS_FILE|$OBS_FILE|g; s|NAME_OUTPUT|$NAME_OUTPUT|g; s|NAME_ENSEMBLE_OUTPUT|$NAME_ENSEMBLE_OUTPUT|g; s|NAME_VERT_PROFILES_OUTPUT|$NAME_VERT_PROFILES_OUTPUT|g; s|DA_ALGORITHM|$DA_ALGORITHM|g; s|NB_MEMBERS|$NB_MEMBERS|g ; s|VAR_ASSIM|$VAR_ASSIM|g" config_svs2_Powassan_synth_exp.py >  config.py
+sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g" config_svs2_Powassan_synth_exp.py >  config.py
 
 ### Run the data assimilation
-python main_svs2.py
+#python main_svs2.py
 
 
 ##########################################################
@@ -104,10 +103,10 @@ NAME_ENSEMBLE_OUTPUT='ensbl_Powassan_PF_diff_13_5p4_2times'
 NAME_VERT_PROFILES_OUTPUT='out_snow_vert_Powassan_PF_diff_13_5p4_2times'
 
 
-sed "s|OBS_FILE|$OBS_FILE|g; s|NAME_OUTPUT|$NAME_OUTPUT|g; s|NAME_ENSEMBLE_OUTPUT|$NAME_ENSEMBLE_OUTPUT|g; s|NAME_VERT_PROFILES_OUTPUT|$NAME_VERT_PROFILES_OUTPUT|g; s|DA_ALGORITHM|$DA_ALGORITHM|g; s|NB_MEMBERS|$NB_MEMBERS|g ; s|VAR_ASSIM|$VAR_ASSIM|g" config_svs2_Powassan_synth_exp.py >  config.py
+sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g" config_svs2_Powassan_synth_exp.py >  config.py
 
 ### Run the data assimilation
-python main_svs2.py
+#python main_svs2.py
 
 ##########################################################
 ## Assimilating difference sigma_17GHz and sigma_5p4GHz
@@ -122,10 +121,10 @@ NAME_ENSEMBLE_OUTPUT='ensbl_Powassan_PF_diff_17_5p4_2times'
 NAME_VERT_PROFILES_OUTPUT='out_snow_vert_Powassan_PF_diff_17_5p4_2times'
 
 
-sed "s|OBS_FILE|$OBS_FILE|g; s|NAME_OUTPUT|$NAME_OUTPUT|g; s|NAME_ENSEMBLE_OUTPUT|$NAME_ENSEMBLE_OUTPUT|g; s|NAME_VERT_PROFILES_OUTPUT|$NAME_VERT_PROFILES_OUTPUT|g; s|DA_ALGORITHM|$DA_ALGORITHM|g; s|NB_MEMBERS|$NB_MEMBERS|g ; s|VAR_ASSIM|$VAR_ASSIM|g" config_svs2_Powassan_synth_exp.py >  config.py
+sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g" config_svs2_Powassan_synth_exp.py >  config.py
 
 ### Run the data assimilation
-python main_svs2.py
+#python main_svs2.py
 
 
 
