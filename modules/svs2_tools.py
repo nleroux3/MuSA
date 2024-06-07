@@ -35,7 +35,7 @@ if cfg.DAsord:
 # TODO: homogenize documentation format
 
 forcing_columns = ['HOUR', 'MINS', 'JDAY', 'YEAR', 'FSIN', 'FLIN', 'PRE', 'TA', 'QA', 'UV', 'PRES', 'PRERN', 'PRESNO']
-model_columns = ["year", "month", "day", "hour", "snd", "SWE", "Tsrf", "alb","sigma_13GHz","sigma_17GHz",'sigma_5p4GHz','sigma_diff_13_17','sigma_diff_13_5p4','sigma_diff_17_5p4']
+model_columns = ["year", "month", "day", "hour", "sd", "swe", "Ts", "alb","sigma_13GHz","sigma_17GHz",'sigma_5p4GHz','sigma_diff_13_17','sigma_diff_13_5p4','sigma_diff_17_5p4']
 
 
 def W19(Ta, QA, Pres):
@@ -101,8 +101,8 @@ def model_read_output(read_dump=True):
     Ts = mod['TSNO_SURF'].to_dataframe('Ts')
     alb = mod['SNOALB'].to_dataframe('Ts')
 
-    state = pd.concat([swe, sd, Ts, alb], axis=1)
-    state.columns = ['SWE', 'snd','Tsrf','alb']
+    state = pd.concat([sd, swe, Ts, alb], axis=1)
+    state.columns = ['sd','swe', 'Ts','alb']
 
     state['year'] = state.index.year
     state['month'] = state.index.month
@@ -111,6 +111,8 @@ def model_read_output(read_dump=True):
 
     smrt_out = xr.open_dataset(os.path.join(cfg.dir_exp,'Simulation_TestBed','sim_exp','output','out_smrt.nc')).to_dataframe()
     state = pd.concat([state, smrt_out], axis = 1)
+
+    state = state[model_columns]
 
     if read_dump:
         dump = pd.read_csv(os.path.join(cfg.dir_exp,'Simulation_TestBed','sim_exp', 'output/restart_svs2.csv'), header = None,delimiter=r"\s+", names = range(50))
@@ -230,7 +232,7 @@ def storeDA(Result_df, step_results, observations_sbst, error_sbst,
     else:
         var = var_to_assim[0]
         Result_df.loc[rowIndex, var] = observations_sbst
-        Result_df.loc[rowIndex, error_names] = error_sbst
+        Result_df.loc[rowIndex, error_names[0]] = error_sbst
 
     # Add perturbation parameters to Results
     for var_p in vars_to_perturbate:
@@ -301,14 +303,14 @@ def init_result(del_t, DA=False):
         Results["month"] = [np.nan for x in del_t[:-1]]
         Results["day"] = [np.nan for x in del_t[:-1]]
         Results["hour"] = [np.nan for x in del_t[:-1]]
-        Results["snd"] = [np.nan for x in del_t[:-1]]
-        Results["SWE"] = [np.nan for x in del_t[:-1]]
-        Results["Tsrf"] = [np.nan for x in del_t[:-1]]
+        Results["sd"] = [np.nan for x in del_t[:-1]]
+        Results["swe"] = [np.nan for x in del_t[:-1]]
+        Results["Ts"] = [np.nan for x in del_t[:-1]]
         Results["alb"] = [np.nan for x in del_t[:-1]]
 
-        Results = Results.astype({'snd': 'float32',
-                                   'SWE': 'float32',
-                                   'Tsrf': 'float32',
+        Results = Results.astype({'sd': 'float32',
+                                   'swe': 'float32',
+                                   'Ts': 'float32',
                                    'alb': 'float32'})
 
         return Results

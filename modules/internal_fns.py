@@ -176,17 +176,25 @@ def obs_array(dates_obs, lat_idx, lon_idx):
         ds = xr.open_dataset(cfg.obs_file).sel(time = slice(date_ini,date_end))
 
         # Initialize obs matrix
+        obs_matrix = np.empty((len(del_t), len(cfg.obs_var_names)))
+        error_matrix = np.empty((len(del_t), len(cfg.obs_var_names)))
 
-        array_obs = np.empty(len(del_t))
-        array_obs[:] = np.nan
+        for cont, obs_var in enumerate(cfg.obs_var_names):
+            array_obs = np.empty(len(del_t))
+            array_obs[:] = np.nan
 
-        array_error = np.empty(len(del_t))
-        array_error[:] = np.nan
+            array_error = np.empty(len(del_t))
+            array_error[:] = np.nan
 
-        array_obs[obs_idx] = ds[cfg.obs_var_names].values
-        array_error[obs_idx] = cfg.r_cov
 
-        return array_obs, array_error
+            array_obs[obs_idx] = ds[obs_var].values
+            array_error[obs_idx] = cfg.r_cov
+
+
+            obs_matrix[:, cont] = array_obs
+            error_matrix[:, cont] = array_error
+
+        return obs_matrix, error_matrix
 
     else:
         nc_obs_path = cfg.nc_obs_path

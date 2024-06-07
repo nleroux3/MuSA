@@ -68,7 +68,6 @@ def generate_smrt_output():
     # SNODOPT_ML: diametre optique des couches
     # SNODP: hauteur totale du snowpack
 
-    print(cfg.da_algorithm)
     if cfg.da_algorithm == "ensemble_OL": # Run SMRT only when we have obs'
         # Get the obs
         obs = xr.open_dataset(cfg.obs_file).to_dataframe()

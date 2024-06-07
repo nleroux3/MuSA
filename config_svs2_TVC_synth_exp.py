@@ -58,12 +58,12 @@ burn_in = 0.1      # discard the first x proportion of samples
 # and time. If this option is selected, the errors will be stored in a new
 # variable in the observation files, and will have the same dimensions as
 # the observations.
-r_cov = [1]
+r_cov = [R_COV]
 add_dynamic_noise = False
 
 # var_to_assim from "snd", "SWE", "Tsrf", 'sigma' from the output file from SVS2
-var_to_assim = ['VAR_ASSIM']
-obs_error_var_names = ['sdError']  # In case of r_cov = 'dynamic_error'
+var_to_assim = [VAR_ASSIM]
+obs_error_var_names = [ERROR_VAR_NAMES]  # In case of r_cov = 'dynamic_error'
 
 # DA second order variables and/or statistics (experimental)
 DAsord = False
@@ -73,7 +73,7 @@ DAord_names = ["Ampli"]
 vars_to_perturbate = ["TA", "PRE"]
 
 # Name of the variable to assimilate in the observation file
-obs_var_names = 'VAR_ASSIM'
+obs_var_names = [VAR_ASSIM]
 
 # In smoothers, re-draw new parameters for each season
 season_rejuvenation = [True, True]
