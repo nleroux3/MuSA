@@ -188,7 +188,7 @@ def obs_array(dates_obs, lat_idx, lon_idx):
 
 
             array_obs[obs_idx] = ds[obs_var].values
-            array_error[obs_idx] = cfg.r_cov
+            array_error[obs_idx] = cfg.r_cov[cont]
 
 
             obs_matrix[:, cont] = array_obs
