@@ -69,8 +69,11 @@ obs_error_var_names = [ERROR_VAR_NAMES]  # In case of r_cov = 'dynamic_error'
 DAsord = False
 DAord_names = ["Ampli"]
 
-# vars_to_perturbate from "SW", "LW", "Prec", "Ta", "RH", "Ua", "PS
+# vars_to_perturbate from "FSIN", "PRE", "TA", "RH", "UV", "PS" 
 vars_to_perturbate = ["TA", "PRE"]
+
+#mark as true to perturb longwave, False if not
+lperturb_LW = True
 
 # Name of the variable to assimilate in the observation file
 obs_var_names = [VAR_ASSIM]

@@ -218,6 +218,7 @@ def perturb_parameters(main_forcing, lat_idx=None, lon_idx=None, member=None,
         var_tmp = vars_to_perturbate[idv]
         strategy_tmp = perturbation_strategy[idv]
 
+
         if readGSC:
             parameter = spM.read_parameter(GSC_filename, lat_idx, lon_idx,
                                            var_tmp, member)
@@ -251,6 +252,26 @@ def perturb_parameters(main_forcing, lat_idx=None, lon_idx=None, member=None,
 
         # store the noise
         noise_storage[var_tmp] = noise_coef
+        
+        if (cfg.lperturb_LW):
+            #These values are specific to Powasson, would want to update it for different sights
+            #LW = a*TA+b
+            #LW = 4.12893074*T-854.1108168
+            forcing_copy['FLIN'] = ((forcing_copy['TA'].values+273.15)*4.12893074) - 854.1108168
+            
+        
+        #if shortwave is perturbed and PRE >0, then cap the SW to 200 W/m2
+        if var_tmp == 'FSIN':
+            precip = forcing_copy['PRE'].values
+            shortwave = forcing_copy['FSIN'].values
+            for i in range(len(precip)):
+                if (precip[i]>0) & (shortwave[i]>200):
+                    forcing_copy.iloc[i, 'FSIN'] = 200
+                
+                    
+            
+            
+            
 
     return forcing_copy, noise_storage
 
