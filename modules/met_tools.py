@@ -218,7 +218,6 @@ def perturb_parameters(main_forcing, lat_idx=None, lon_idx=None, member=None,
         var_tmp = vars_to_perturbate[idv]
         strategy_tmp = perturbation_strategy[idv]
 
-
         if readGSC:
             parameter = spM.read_parameter(GSC_filename, lat_idx, lon_idx,
                                            var_tmp, member)
@@ -264,14 +263,11 @@ def perturb_parameters(main_forcing, lat_idx=None, lon_idx=None, member=None,
         if var_tmp == 'FSIN':
             precip = forcing_copy['PRE'].values
             shortwave = forcing_copy['FSIN'].values
+            forcing_copy = forcing_copy.reset_index()
             for i in range(len(precip)):
                 if (precip[i]>0) & (shortwave[i]>200):
-                    forcing_copy.iloc[i, 'FSIN'] = 200
-                
-                    
-            
-            
-            
+                    forcing_copy.loc[i, 'FSIN'] = 200
+
 
     return forcing_copy, noise_storage
 
