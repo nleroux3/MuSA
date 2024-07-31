@@ -61,6 +61,9 @@ burn_in = 0.1      # discard the first x proportion of samples
 r_cov = [R_COV]
 add_dynamic_noise = False
 
+#mark as true to perturb forcing with different noise every hour, otherwise keep the same noise for the whole assimilation time step (default in MuSA)
+lperturb_hourly = True
+
 # var_to_assim from "snd", "SWE", "Tsrf", 'sigma' from the output file from SVS2
 var_to_assim = [VAR_ASSIM]
 obs_error_var_names = [ERROR_VAR_NAMES]  # In case of r_cov = 'dynamic_error'

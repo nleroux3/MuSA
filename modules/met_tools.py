@@ -125,27 +125,73 @@ def create_noise(perturbation_strategy, n_steps, mean, std_dev, var):
     if (cfg.seed is not None):
         np.random.seed(cfg.seed)
 
-    if perturbation_strategy == "normal":
-        noise = np.random.normal(mean, std_dev, 1)
-        noise = np.repeat(noise, n_steps)
+    bPmax = cnt.upper_bounds[var]
+    bPmin = cnt.lower_bounds[var]
 
+    if cfg.lperturb_hourly: # We actually want the noise to differ every time step
 
-    elif perturbation_strategy == "lognormal":
-        noise = np.random.lognormal(mean, std_dev, 1)
-        noise = np.repeat(noise, n_steps)
+        if perturbation_strategy == "normal":
 
-    elif perturbation_strategy in ["logitnormal_mult",
-                                   "logitnormal_adi"]:
+            noise = np.random.normal(mean, std_dev, n_steps)
 
-        bPmax = cnt.upper_bounds[var]
-        bPmin = cnt.lower_bounds[var]
+            idx_outside_bounds = np.argwhere((noise > bPmax) | (noise < bPmin))
 
-        norm_noise = np.random.normal(mean, std_dev, 1)
-        norm_noise = np.repeat(norm_noise, n_steps)
-        noise = gexpit(norm_noise, bPmin, bPmax)
+            for i in idx_outside_bounds:
+                noise_i = noise[i]
+                # redraw until within the bounds
+                while ((noise_i > bPmax) | (noise_i < bPmin)):
+                    noise_i = np.random.normal(mean, std_dev, 1)
+                noise[i] = noise_i
+
+        elif perturbation_strategy == "lognormal":
+            noise = np.random.lognormal(mean, std_dev, n_steps)
+
+            idx_outside_bounds = np.argwhere((noise > bPmax) | (noise < bPmin))
+
+            for i in idx_outside_bounds:
+                noise_i = noise[i]
+                # redraw until within the bounds
+                while ((noise_i > bPmax) | (noise_i < bPmin)):
+                    noise_i = np.random.lognormal(mean, std_dev, 1)
+                noise[i] = noise_i
+
+        elif perturbation_strategy in ["logitnormal_mult",
+                                       "logitnormal_adi"]:
+
+            norm_noise = np.random.normal(mean, std_dev, n_steps)
+            noise = gexpit(norm_noise, bPmin, bPmax)
 
     else:
-        raise Exception("choose the shape of the perturbation parameters")
+
+        # constant noise over the assimilation time step
+        if perturbation_strategy == "normal":
+            noise = np.random.normal(mean, std_dev, 1)
+    
+            # If noise outside of bounds, redraw until within the bounds
+            while ((noise > bPmax) | (noise < bPmin)):
+                noise = np.random.normal(mean, std_dev, 1)
+
+            noise = np.repeat(noise, n_steps)
+
+        elif perturbation_strategy == "lognormal":
+            noise = np.random.lognormal(mean, std_dev, 1)
+
+            # If noise outside of bounds, redraw until within the bounds
+            while ((noise > bPmax) | (noise < bPmin)):
+                noise = np.random.lognormal(mean, std_dev, 1)
+
+            noise = np.repeat(noise, n_steps)
+
+        elif perturbation_strategy in ["logitnormal_mult",
+                                       "logitnormal_adi"]:
+
+
+            norm_noise = np.random.normal(mean, std_dev, 1)
+            norm_noise = np.repeat(norm_noise, n_steps)
+            noise = gexpit(norm_noise, bPmin, bPmax)
+
+        else:
+            raise Exception("choose the shape of the perturbation parameters")
     return noise
 
 
@@ -234,13 +280,6 @@ def perturb_parameters(main_forcing, lat_idx=None, lon_idx=None, member=None,
                                       var_tmp)
 
         noise_coef = add_process_noise(noise_coef, var_tmp, strategy_tmp)
-
-        bPmax = cnt.upper_bounds[var_tmp]
-        bPmin = cnt.lower_bounds[var_tmp]
-    
-        # Bound the noise
-        noise_coef = np.maximum(noise_coef, bPmin)
-        noise_coef = np.minimum(noise_coef, bPmax)
 
 
         # If lognormal perturbation multiplicate, else add
