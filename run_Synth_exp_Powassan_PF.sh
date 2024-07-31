@@ -28,14 +28,21 @@ NAME_OUTPUT='cell_Powassan_OL_weekly'
 NAME_ENSEMBLE_OUTPUT='ensbl_Powassan_OL_weekly' 
 NAME_VERT_PROFILES_OUTPUT='out_snow_vert_Powassan_OL_weekly'
 
+TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$(date +%Y%m%d%H%M%S)
 
-sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g" config_svs2_Powassan_synth_exp.py >  config.py
+mkdir -p ${TMP_PATH}
+mkdir -p ${TMP_PATH}'/output'
+
+
+sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
 if [ ! -f $OUTPUT_FOLDER/$NAME_ENSEMBLE_OUTPUT.pkl.blp ]; then
     echo "$NAME_ENSEMBLE_OUTPUT does not exists"
-    #python main_svs2.py
+    python main_svs2.py &
+    sleep 60
 fi
+
 
 ##########################################################
 ## Assimilating sigma_13GHz
@@ -51,15 +58,21 @@ OBS_FILE='/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/obs/obs_Powassan_sy
 NAME_OUTPUT='cell_Powassan_PF_13GHz_weekly'
 NAME_ENSEMBLE_OUTPUT='ensbl_Powassan_PF_13GHz_weekly' 
 NAME_VERT_PROFILES_OUTPUT='out_snow_vert_Powassan_PF_13GHz_weekly'
+TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$(date +%Y%m%d%H%M%S)
+
+mkdir -p ${TMP_PATH}
+mkdir -p ${TMP_PATH}'/output'
 
 
-sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g" config_svs2_Powassan_synth_exp.py >  config.py
+sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
 if [ ! -f $OUTPUT_FOLDER/$NAME_ENSEMBLE_OUTPUT.pkl.blp ]; then
     echo "$NAME_ENSEMBLE_OUTPUT does not exists"
-    #python main_svs2.py
+    python main_svs2.py &
+    sleep 60
 fi
+
 
 ##########################################################
 ## Assimilating sigma_17GHz
@@ -75,16 +88,21 @@ OBS_FILE='/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/obs/obs_Powassan_sy
 NAME_OUTPUT='cell_Powassan_PF_17GHz_weekly'
 NAME_ENSEMBLE_OUTPUT='ensbl_Powassan_PF_17GHz_weekly' 
 NAME_VERT_PROFILES_OUTPUT='out_snow_vert_Powassan_PF_17GHz_weekly'
+TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$(date +%Y%m%d%H%M%S)
+
+mkdir -p ${TMP_PATH}
+mkdir -p ${TMP_PATH}'/output'
 
 
-sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g" config_svs2_Powassan_synth_exp.py >  config.py
-
+sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
 if [ ! -f $OUTPUT_FOLDER/$NAME_ENSEMBLE_OUTPUT.pkl.blp ]; then
     echo "$NAME_ENSEMBLE_OUTPUT does not exists"
-    #python main_svs2.py
+    python main_svs2.py &
+    sleep 60
 fi
+
 
 ##########################################################
 ## Assimilating difference sigma_13GHz and sigma_17GHz
@@ -99,13 +117,19 @@ OBS_FILE='/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/obs/obs_Powassan_sy
 NAME_OUTPUT='cell_Powassan_PF_diff_13_17_weekly'
 NAME_ENSEMBLE_OUTPUT='ensbl_Powassan_PF_diff_13_17_weekly' 
 NAME_VERT_PROFILES_OUTPUT='out_snow_vert_Powassan_PF_diff_13_17_weekly'
+TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$(date +%Y%m%d%H%M%S)
 
-sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g" config_svs2_Powassan_synth_exp.py >  config.py
+mkdir -p ${TMP_PATH}
+mkdir -p ${TMP_PATH}'/output'
+
+
+sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
 if [ ! -f $OUTPUT_FOLDER/$NAME_ENSEMBLE_OUTPUT.pkl.blp ]; then
     echo "$NAME_ENSEMBLE_OUTPUT does not exists"
-    #python main_svs2.py
+    python main_svs2.py &
+    sleep 60
 fi
 
 
@@ -122,15 +146,21 @@ OBS_FILE='/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/obs/obs_Powassan_sy
 NAME_OUTPUT='cell_Powassan_PF_diff_13_5p4_weekly'
 NAME_ENSEMBLE_OUTPUT='ensbl_Powassan_PF_diff_13_5p4_weekly' 
 NAME_VERT_PROFILES_OUTPUT='out_snow_vert_Powassan_PF_diff_13_5p4_weekly'
+TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$(date +%Y%m%d%H%M%S)
+
+mkdir -p ${TMP_PATH}
+mkdir -p ${TMP_PATH}'/output'
 
 
-sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g" config_svs2_Powassan_synth_exp.py >  config.py
+sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
 if [ ! -f $OUTPUT_FOLDER/$NAME_ENSEMBLE_OUTPUT.pkl.blp ]; then
     echo "$NAME_ENSEMBLE_OUTPUT does not exists"
-    python main_svs2.py
+    python main_svs2.py &
+    sleep 60
 fi
+
 
 
 ##########################################################
@@ -146,15 +176,21 @@ OBS_FILE='/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/obs/obs_Powassan_sy
 NAME_OUTPUT='cell_Powassan_PF_diff_17_5p4_weekly'
 NAME_ENSEMBLE_OUTPUT='ensbl_Powassan_PF_diff_17_5p4_weekly' 
 NAME_VERT_PROFILES_OUTPUT='out_snow_vert_Powassan_PF_diff_17_5p4_weekly'
+TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$(date +%Y%m%d%H%M%S)
+
+mkdir -p ${TMP_PATH}
+mkdir -p ${TMP_PATH}'/output'
 
 
-sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g" config_svs2_Powassan_synth_exp.py >  config.py
+sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
 if [ ! -f $OUTPUT_FOLDER/$NAME_ENSEMBLE_OUTPUT.pkl.blp ]; then
     echo "$NAME_ENSEMBLE_OUTPUT does not exists"
-    python main_svs2.py
+    python main_svs2.py &
+    sleep 60
 fi
+
 
 
 ##########################################################
@@ -172,14 +208,19 @@ OBS_FILE='/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/obs/obs_Powassan_sy
 NAME_OUTPUT='cell_Powassan_PF_13GHz_17GHz_weekly'
 NAME_ENSEMBLE_OUTPUT='ensbl_Powassan_PF_13GHz_17GHz_weekly' 
 NAME_VERT_PROFILES_OUTPUT='out_snow_vert_Powassan_PF_13GHz_17GHz_weekly'
+TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$(date +%Y%m%d%H%M%S)
+
+mkdir -p ${TMP_PATH}
+mkdir -p ${TMP_PATH}'/output'
 
 
-sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g ; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g" config_svs2_Powassan_synth_exp.py >  config.py
+sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
 if [ ! -f $OUTPUT_FOLDER/$NAME_ENSEMBLE_OUTPUT.pkl.blp ]; then
     echo "$NAME_ENSEMBLE_OUTPUT does not exists"
-    #python main_svs2.py
+    python main_svs2.py &
+    sleep 60
 fi
 
 
@@ -198,15 +239,21 @@ OBS_FILE='/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/obs/obs_Powassan_sy
 NAME_OUTPUT='cell_Powassan_PF_13GHz_17GHz_5p4GHz_weekly'
 NAME_ENSEMBLE_OUTPUT='ensbl_Powassan_PF_13GHz_17GHz_5p4GHz_weekly' 
 NAME_VERT_PROFILES_OUTPUT='out_snow_vert_Powassan_PF_13GHz_17GHz_5p4GHz_weekly'
+TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$(date +%Y%m%d%H%M%S)
+
+mkdir -p ${TMP_PATH}
+mkdir -p ${TMP_PATH}'/output'
 
 
-sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g ; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g" config_svs2_Powassan_synth_exp.py >  config.py
+sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
 if [ ! -f $OUTPUT_FOLDER/$NAME_ENSEMBLE_OUTPUT.pkl.blp ]; then
     echo "$NAME_ENSEMBLE_OUTPUT does not exists"
-    python main_svs2.py
+    python main_svs2.py &
+    sleep 60
 fi
+
 
 ##########################################################
 ## Assimilating sigma_13GHz and difference sigma_13GHz and sigma_17GHz
@@ -221,14 +268,21 @@ OBS_FILE='/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/obs/obs_Powassan_sy
 NAME_OUTPUT='cell_Powassan_PF_13_diff_13_17_weekly'
 NAME_ENSEMBLE_OUTPUT='ensbl_Powassan_PF_13_diff_13_17_weekly' 
 NAME_VERT_PROFILES_OUTPUT='out_snow_vert_Powassan_PF_13_diff_13_17_weekly'
+TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$(date +%Y%m%d%H%M%S)
 
-sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g" config_svs2_Powassan_synth_exp.py >  config.py
+mkdir -p ${TMP_PATH}
+mkdir -p ${TMP_PATH}'/output'
+
+
+sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
 if [ ! -f $OUTPUT_FOLDER/$NAME_ENSEMBLE_OUTPUT.pkl.blp ]; then
     echo "$NAME_ENSEMBLE_OUTPUT does not exists"
-    python main_svs2.py
+    python main_svs2.py &
+    sleep 60
 fi
+
 
 ##########################################################
 ## Assimilating sigma_17GHz and difference sigma_13GHz and sigma_17GHz
@@ -243,13 +297,19 @@ OBS_FILE='/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/obs/obs_Powassan_sy
 NAME_OUTPUT='cell_Powassan_PF_17_diff_13_17_weekly'
 NAME_ENSEMBLE_OUTPUT='ensbl_Powassan_PF_17_diff_13_17_weekly' 
 NAME_VERT_PROFILES_OUTPUT='out_snow_vert_Powassan_PF_17_diff_13_17_weekly'
+TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$(date +%Y%m%d%H%M%S)
 
-sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g" config_svs2_Powassan_synth_exp.py >  config.py
+mkdir -p ${TMP_PATH}
+mkdir -p ${TMP_PATH}'/output'
+
+
+sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
 if [ ! -f $OUTPUT_FOLDER/$NAME_ENSEMBLE_OUTPUT.pkl.blp ]; then
     echo "$NAME_ENSEMBLE_OUTPUT does not exists"
-    python main_svs2.py
+    python main_svs2.py &
+    sleep 60
 fi
 
 
@@ -268,15 +328,21 @@ OBS_FILE='/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/obs/obs_Powassan_sy
 NAME_OUTPUT='cell_Powassan_PF_swe_weekly'
 NAME_ENSEMBLE_OUTPUT='ensbl_Powassan_PF_swe_weekly' 
 NAME_VERT_PROFILES_OUTPUT='out_snow_vert_Powassan_PF_swe_weekly'
+TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$(date +%Y%m%d%H%M%S)
+
+mkdir -p ${TMP_PATH}
+mkdir -p ${TMP_PATH}'/output'
 
 
-sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g ; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g" config_svs2_Powassan_synth_exp.py >  config.py
+sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
 if [ ! -f $OUTPUT_FOLDER/$NAME_ENSEMBLE_OUTPUT.pkl.blp ]; then
     echo "$NAME_ENSEMBLE_OUTPUT does not exists"
-    #python main_svs2.py
+    python main_svs2.py &
+    sleep 60
 fi
+
 
 
 ##########################################################
@@ -294,13 +360,24 @@ OBS_FILE='/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/obs/obs_Powassan_sy
 NAME_OUTPUT='cell_Powassan_PF_sd_weekly'
 NAME_ENSEMBLE_OUTPUT='ensbl_Powassan_PF_sd_weekly' 
 NAME_VERT_PROFILES_OUTPUT='out_snow_vert_Powassan_PF_sd_weekly'
+TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$(date +%Y%m%d%H%M%S)
+
+mkdir -p ${TMP_PATH}
+mkdir -p ${TMP_PATH}'/output'
 
 
-sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g ; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g" config_svs2_Powassan_synth_exp.py >  config.py
+sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
 if [ ! -f $OUTPUT_FOLDER/$NAME_ENSEMBLE_OUTPUT.pkl.blp ]; then
     echo "$NAME_ENSEMBLE_OUTPUT does not exists"
-    #python main_svs2.py
+    python main_svs2.py &
+    sleep 60
 fi
+
+
+
+wait
+rm -r /home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_*
+
 

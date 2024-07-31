@@ -58,7 +58,7 @@ def generate_smrt_output():
 
              
     # Read simulation results
-    mod = xr.open_dataset(os.path.join(cfg.dir_exp,'Simulation_TestBed','sim_exp','output','out_svs2.nc'))
+    mod = xr.open_dataset(os.path.join(cfg.tmp_path,'output','out_svs2.nc'))
 
     df_soil = mod['TPSOIL'].to_dataframe() 
     df = mod[['SNODEN_ML','SNOMA_ML','TSNOW_ML','SNODOPT_ML','SNODP']].to_dataframe() 
@@ -126,10 +126,12 @@ def generate_smrt_output():
             result_13GHz = model.run(sensor_13GHz, snowpack, parallel_computation=False)
             result_17GHz = model.run(sensor_17GHz, snowpack, parallel_computation=False)
             result_5p4GHz = model.run(sensor_5p4GHz, snowpack, parallel_computation=False)
+            #result_5p4GHz = np.nan
 
             sigma_13GHz.append(to_dB(result_13GHz.sigmaVV()))
             sigma_17GHz.append(to_dB(result_17GHz.sigmaVV()))
             sigma_5p4GHz.append(to_dB(result_5p4GHz.sigmaVV()))
+            #sigma_5p4GHz.append(-999.)
             time_sigma.append(tt)
         else:
 
@@ -154,5 +156,5 @@ def generate_smrt_output():
     # Write netcdf   
     encoding = generate_encodings(smrt_xr) 
     netcdf_file_out = 'out_smrt.nc'
-    smrt_xr.to_netcdf(os.path.join(cfg.dir_exp,'Simulation_TestBed','sim_exp','output',netcdf_file_out))
+    smrt_xr.to_netcdf(os.path.join(cfg.tmp_path,'output',netcdf_file_out))
 

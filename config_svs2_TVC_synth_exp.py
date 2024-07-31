@@ -20,7 +20,7 @@ output_path = "/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/outpu
 name_output = 'NAME_OUTPUT' # Default output file by MuSA (weights, ...)
 name_ensemble_output = 'NAME_ENSEMBLE_OUTPUT' # Full ensemble output
 name_vert_profiles_output = 'NAME_VERT_PROFILES_OUTPUT' # Full ensemble output
-tmp_path = None
+tmp_path = 'TMP_PATH' # Temporary path 
 
 mesh_exe = '/home/nil005/ords/Codes/MESH_SVS/MESH_SVS_workMuSA/sa_mesh'
 
@@ -71,6 +71,8 @@ DAord_names = ["Ampli"]
 
 # vars_to_perturbate from "SW", "LW", "Prec", "Ta", "RH", "Ua", "PS
 vars_to_perturbate = ["TA", "PRE"]
+
+lperturb_LW = False
 
 # Name of the variable to assimilate in the observation file
 obs_var_names = [VAR_ASSIM]
