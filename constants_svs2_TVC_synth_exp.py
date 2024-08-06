@@ -14,6 +14,13 @@ mean_errors = {"PRE": 0,
 sd_errors = { "PRE": 0.4,
             "TA":0.9}
 
+# Decorrelation time [h]
+# -----------------------------------
+
+tau = {"PRE": 12.,
+       "TA": 12.}
+
+
 # -----------------------------------
 # Upper bounds errors
 # -----------------------------------
@@ -21,14 +28,14 @@ sd_errors = { "PRE": 0.4,
 # If strategy is normal or lognormal, bounds apply to the perturbed variables
 # If strategy is  "logitnormal_mult","logitnormal_adi", bounds applied to the noie
 
-upper_bounds = {"PRE": 3,
+upper_bounds = {"PRE": 1.5,
                 "TA": 3}
 
 # -----------------------------------
 # Lower bounds errors
 # -----------------------------------
 
-lower_bounds = {"PRE": 0,
+lower_bounds = {"PRE": 0.5,
                 "TA": -3}
 
 

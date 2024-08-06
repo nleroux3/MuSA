@@ -11,16 +11,16 @@ numerical_model = 'svs2'  # model to use from FSM2, dIm or snow17
 # Directories
 # -----------------------------------
 
-obs_file = '/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/obs/obs_Powassan_synth_weekly_noLiq.nc'
+obs_file = '/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/obs/obs_TVC_synth_2times.nc'
 intermediate_path = "./DATA/INTERMEDIATE/"
-file_forcing = '/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/Input_MESH/basin_forcing_Powassan_2223.met'
+file_forcing = '/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/Input_MESH/basin_forcing_TVC_1819.met'
 dir_exp = '/home/nil005/store6/Driving_Data/MuSA_PF/'
 save_ensemble_path = "/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/output_PF/"
 output_path = "/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/output_PF/"
-name_output = 'cell_Powassan_PF_sd_weekly_noLiq' # Default output file by MuSA (weights, ...)
-name_ensemble_output = 'ensbl_Powassan_PF_sd_weekly_noLiq' # Full ensemble output
-name_vert_profiles_output = 'out_snow_vert_Powassan_PF_sd_weekly_noLiq' # Full ensemble output
-tmp_path = None
+name_output = 'cell_TVC_PF_sd_try' # Default output file by MuSA (weights, ...)
+name_ensemble_output = 'ensbl_TVC_PF_sd_try' # Full ensemble output
+name_vert_profiles_output = 'out_snow_vert_TVC_PF_sd_try' # Full ensemble output
+tmp_path = '/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp' # Temporary path 
 
 mesh_exe = '/home/nil005/ords/Codes/MESH_SVS/MESH_SVS_workMuSA/sa_mesh'
 
@@ -36,8 +36,8 @@ restart_forcing = False
 
 # da_algorithm from PF, EnKF, IEnKF, PBS, ES, IES, deterministic_OL, ensemble_OL,
 # IES-MCMC_AI, IES-MCMC, AdaMuPBS, AdaPBS or PIES
-da_algorithm = 'PF'
-redraw_prior = False  # PF and PBS only.
+da_algorithm = 'ensemble_OL'
+redraw_prior = False  # PF and PBS only
 redraw_scratch = True  # redraw using the variables from the constant file
 max_iterations = 4  # IEnKF, IES, IES-MCMC and AdaPBS
 # resampling_algorithm from "bootstrapping", residual_resample,
@@ -61,6 +61,17 @@ burn_in = 0.1      # discard the first x proportion of samples
 r_cov = [0.003]
 add_dynamic_noise = False
 
+#mark as true to perturb forcing with different noise every hour, otherwise keep the same noise for the whole assimilation time step (default in MuSA)
+lperturb_hourly = True
+
+# Using time autocorrelation for the noise applied to the met forcing. If time autocorrelation for the noise is used, lperturb_hourly needs to be = True
+# Three options are giving:
+#      "none" (no using time autocorrelation in noie)
+#       "charrois" (based on Charrois et al. 2016) 
+#       "magnusson" (Magnusson et al., 2017)
+AR_noise = 'magnusson'
+
+# Using an AR for the noise. Two options
 # var_to_assim from "snd", "SWE", "Tsrf", 'sigma' from the output file from SVS2
 var_to_assim = ['sd']
 obs_error_var_names = ['sdError']  # In case of r_cov = 'dynamic_error'
@@ -71,6 +82,8 @@ DAord_names = ["Ampli"]
 
 # vars_to_perturbate from "SW", "LW", "Prec", "Ta", "RH", "Ua", "PS
 vars_to_perturbate = ["TA", "PRE"]
+# Perturb or not the LW using a linear regression
+lperturb_LW = False
 
 # Name of the variable to assimilate in the observation file
 obs_var_names = ['sd']
@@ -111,10 +124,16 @@ nprocess = 8  # Note: if None, the number of processors will be estimated
 #aws_lat = 4735225.54  # Latitude in case of point_scale
 #aws_lon = 710701.28   # Longitude in case of point_scale
 
-date_ini = "2022-09-01 07:00" # 1h after first time in the basin_forcing
-date_end = "2023-06-15 00:00"
+date_ini = "2018-09-01 07:00" # 1h after first time in the basin_forcing
+date_end = "2019-06-15 00:00"
 
 season_ini_month = 9  # In smoothers, beginning of DA window (month)
 season_ini_day = 1    # In smoothers, beginning of DA window (day)
+
+
+
+
+
+
 
 

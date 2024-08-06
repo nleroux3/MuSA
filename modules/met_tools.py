@@ -14,6 +14,7 @@ import constants as cnt
 import config as cfg
 import modules.filters as flt
 import modules.spatialMuSA as spM
+import sys
 
 
 def pp_psychrometric(ta2, rh2, precc):
@@ -130,9 +131,83 @@ def create_noise(perturbation_strategy, n_steps, mean, std_dev, var):
 
     if cfg.lperturb_hourly: # We actually want the noise to differ every time step
 
-        if perturbation_strategy == "normal":
+        if cfg.AR_noise == 'none':
+            if perturbation_strategy == "normal":
 
-            noise = np.random.normal(mean, std_dev, n_steps)
+                noise = np.random.normal(mean, std_dev, n_steps)
+
+                idx_outside_bounds = np.argwhere((noise > bPmax) | (noise < bPmin))
+
+                for i in idx_outside_bounds:
+                    noise_i = noise[i]
+                    # redraw until within the bounds
+                    while ((noise_i > bPmax) | (noise_i < bPmin)):
+                        noise_i = np.random.normal(mean, std_dev, 1)
+                    noise[i] = noise_i
+
+            elif perturbation_strategy == "lognormal":
+                noise = np.random.lognormal(mean, std_dev, n_steps)
+
+                idx_outside_bounds = np.argwhere((noise > bPmax) | (noise < bPmin))
+
+                for i in idx_outside_bounds:
+                    noise_i = noise[i]
+                    # redraw until within the bounds
+                    while ((noise_i > bPmax) | (noise_i < bPmin)):
+                        noise_i = np.random.lognormal(mean, std_dev, 1)
+                    noise[i] = noise_i
+
+            elif perturbation_strategy in ["logitnormal_mult",
+                                           "logitnormal_adi"]:
+
+                norm_noise = np.random.normal(mean, std_dev, n_steps)
+                noise = gexpit(norm_noise, bPmin, bPmax)
+        elif cfg.AR_noise == 'charrois':
+
+            dt_model = 10. * 60 # 10 min in s
+
+            if perturbation_strategy == "normal":
+
+                noise = np.zeros(n_steps)
+                noise[0] = np.random.normal(mean, std_dev, 1)
+
+                epsilon = np.random.normal(mean, std_dev, n_steps)
+                phi = np.exp(-dt_model/cnt.tau[var])
+                
+                for i in range(n_steps-1):
+                    noise[i+1] = noise[i] *phi + epsilon
+
+                idx_outside_bounds = np.argwhere((noise > bPmax) | (noise < bPmin))
+
+                for i in idx_outside_bounds:
+                    noise_i = noise[i]
+                    # redraw until within the bounds
+                    while ((noise_i > bPmax) | (noise_i < bPmin)):
+                        noise_i = np.random.normal(mean, std_dev, 1)
+                    noise[i] = noise_i
+            else:
+                print('ATTENTION: AR in Charrois is only with a normal distribution of the noise')
+
+        elif cfg.AR_noise == 'magnusson':
+
+            dt_model = 10. * 60 # 10 min in s
+
+            if perturbation_strategy == "normal":
+
+                noise = np.zeros(n_steps)
+                noise[0] = np.random.normal(mean, std_dev, 1)
+ 
+            elif perturbation_strategy == "lognormal":
+
+                noise = np.zeros(n_steps)
+                noise[0] = np.random.lognormal(mean, std_dev, 1)
+
+
+            w = np.random.normal(0, 1, n_steps)
+            alpha = 1.-dt_model/(cnt.tau[var] * 3600.) # tau from hour to s
+            
+            for i in range(n_steps-1):
+                noise[i+1] = noise[i] *alpha + np.sqrt(1.-alpha**2)* w[i]
 
             idx_outside_bounds = np.argwhere((noise > bPmax) | (noise < bPmin))
 
@@ -142,24 +217,9 @@ def create_noise(perturbation_strategy, n_steps, mean, std_dev, var):
                 while ((noise_i > bPmax) | (noise_i < bPmin)):
                     noise_i = np.random.normal(mean, std_dev, 1)
                 noise[i] = noise_i
-
-        elif perturbation_strategy == "lognormal":
-            noise = np.random.lognormal(mean, std_dev, n_steps)
-
-            idx_outside_bounds = np.argwhere((noise > bPmax) | (noise < bPmin))
-
-            for i in idx_outside_bounds:
-                noise_i = noise[i]
-                # redraw until within the bounds
-                while ((noise_i > bPmax) | (noise_i < bPmin)):
-                    noise_i = np.random.lognormal(mean, std_dev, 1)
-                noise[i] = noise_i
-
-        elif perturbation_strategy in ["logitnormal_mult",
-                                       "logitnormal_adi"]:
-
-            norm_noise = np.random.normal(mean, std_dev, n_steps)
-            noise = gexpit(norm_noise, bPmin, bPmax)
+        else:
+            print("ATTENTION: AR_noise is not within the options")
+            sys.exit(0)
 
     else:
 
