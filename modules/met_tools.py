@@ -164,7 +164,7 @@ def create_noise(perturbation_strategy, n_steps, mean, std_dev, var):
                 noise = gexpit(norm_noise, bPmin, bPmax)
         elif cfg.AR_noise == 'charrois':
 
-            dt_model = 10. * 60 # 10 min in s
+            dt_model = 60. * 60 # 60 min forcing  dt in s
 
             if perturbation_strategy == "normal":
 
@@ -190,7 +190,7 @@ def create_noise(perturbation_strategy, n_steps, mean, std_dev, var):
 
         elif cfg.AR_noise == 'magnusson':
 
-            dt_model = 10. * 60 # 10 min in s
+            dt_model = 60. * 60 # 60 min forcing  dt in s
 
             if perturbation_strategy == "normal":
 
