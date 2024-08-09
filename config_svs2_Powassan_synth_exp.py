@@ -62,14 +62,14 @@ r_cov = [R_COV]
 add_dynamic_noise = False
 
 #mark as true to perturb forcing with different noise every hour, otherwise keep the same noise for the whole assimilation time step (default in MuSA)
-lperturb_hourly = True
+lperturb_hourly = False
 
 # Using time autocorrelation for the noise applied to the met forcing. If time autocorrelation for the noise is used, lperturb_hourly needs to be = True
 # Three options are giving:
-#      "none" (no using time autocorrelation in noie)
+#      "none" (no using time autocorrelation in noise)
 #       "charrois" (based on Charrois et al. 2016) 
 #       "magnusson" (Magnusson et al., 2017)
-AR_noise = 'magnusson'
+AR_noise = 'none'
 
 
 # var_to_assim from "snd", "SWE", "Tsrf", 'sigma' from the output file from SVS2

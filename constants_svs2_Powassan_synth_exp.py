@@ -29,14 +29,14 @@ tau = {"PRE": 12.,
 # If strategy is normal or lognormal, bounds apply to the perturbed variables
 # If strategy is  "logitnormal_mult","logitnormal_adi", bounds applied to the noie
 
-upper_bounds = {"PRE": 1.5,
+upper_bounds = {"PRE": 3,
                 "TA": 3}
 
 # -----------------------------------
 # Lower bounds errors
 # -----------------------------------
 
-lower_bounds = {"PRE": 0.5,
+lower_bounds = {"PRE": 0.,
                 "TA": -3}
 
 

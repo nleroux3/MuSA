@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os,shutil,pdb,glob
+import os,shutil,pdb,glob, re
 import pandas as pd
 import xarray as xr
 import numpy as np
@@ -14,9 +14,11 @@ from smrt import sensor_list, make_model, make_snowpack, make_soil
 from smrt.emmodel.iba import derived_IBA
 from smrt.permittivity.snow_mixing_formula import wetsnow_permittivity_memls as memls
 
+sys.path.append('/home/nil005/ords/Codes/mironov_soil')
+from mironov import mironov_model
+
+
 DENSITY_OF_ICE = 917.
-
-
 
 
 # Functions
@@ -49,19 +51,57 @@ def generate_smrt_output():
     Roughness model: Geometrical Optics Backscatter model
     Permittivity model: static complexe permittivity values to optimize from C-band
     '''
+
+    # Determine soil permittivity using Mironov (https://github.com/JulienMeloche/mironov_soil)
+
+    # open the parameter fil and get the soil parameters needed to calculate the soil permittivity
+    file = open(cfg.tmp_path+'/MESH_parameters.txt') 
+      
+    content = file.readlines() 
+
+    NotFound_sand = True
+    line = 0
+    while NotFound_sand:
+        if content[line][:4] == 'sand':
+            NotFound_sand = False
+        else:
+            line += 1
+    sand_perc = re.findall(r"[-+]?(?:\d*\.*\d+)", content[line])
+    sand_perc = [float(i) for i in sand_perc]
+
+
+    NotFound_clay = True
+    line = 0
+    while NotFound_clay:
+        if content[line][:4] == 'clay':
+            NotFound_clay = False
+        else:
+            line += 1
+    clay_perc = re.findall(r"[-+]?(?:\d*\.*\d+)", content[line])
+    clay_perc = [float(i) for i in clay_perc]
+
+    deltaz = pd.read_csv(cfg.tmp_path+'/MESH_input_soil_levels.txt', delim_whitespace=' ', header=None)
+    deltaz = deltaz[0].values
+
+    # Compute dry soil density (from inisoil_svs2.f90)
+    wsat  =  -0.00126   * np.array(sand_perc) + 0.489
+    rhosoil = (1.0-wsat)*2700. # kg m-3
+    rhosoil = rhosoil / 1000. # kg m-3 to g cm-3
+
+
     #Mean square slope of the target footprint calculated from soil RSM height and soil correlation length
     #use dummy values for now
     sig_soil = 0.01
     lc_soil = 0.1
-    eps = complex(2.5, 0.1)
     mss=2.*(sig_soil/lc_soil)**2
 
              
     # Read simulation results
     mod = xr.open_dataset(os.path.join(cfg.tmp_path,'output','out_svs2.nc'))
 
-    df_soil = mod['TPSOIL'].to_dataframe() 
-    df = mod[['SNODEN_ML','SNOMA_ML','TSNOW_ML','SNODOPT_ML','SNODP']].to_dataframe() 
+    df_soil = mod[['WSOIL','TPSOIL']].to_dataframe() 
+    df_snow = mod[['SNODEN_ML','SNOMA_ML','TSNOW_ML','SNODOPT_ML','SNODP']].to_dataframe() 
+
     # SNODEN_ML: densite des couches
     # SNOMA_ML: SWE des couches
     # TSNOW_ML: T des couches
@@ -85,37 +125,43 @@ def generate_smrt_output():
     sigma_17GHz = []
     sigma_5p4GHz = []
     time_sigma = []
+    sigma_diff_13_17 = []
+    sigma_diff_13_5p4 = []
+    sigma_diff_17_5p4 = []
 
     for tt in times: # just the last time
-        d_time = df.loc[tt].copy()
+        snow_t = df_snow.loc[tt].copy()
+        snow_t = snow_t[snow_t['SNOMA_ML'] > 0]  # Select only layers with a mass  
 
-        d_soil = df_soil.loc[tt]
-        d_time = d_time[d_time['SNOMA_ML'] > 0]  # Select only layers with a mass  
+        soil_t = df_soil.loc[tt]
 
-        if len(d_time) > 0.: # If there is at least one layer
+        # Calculate soil permittivity
+        e_r, e_i = mironov_model(soil_t['TPSOIL'].iloc[0]-273.15, clay_perc[0], soil_t['WSOIL'].iloc[0], rhosoil[0])
+        eps = complex(e_r, e_i)
 
-            sub = make_soil('geometrical_optics', 
+
+        if len(snow_t) > 0.: # If there is at least one layer
+
+            sub = make_soil('geometrical_optics_backscatter', 
                             permittivity_model = eps, 
                             mean_square_slope=mss, 
-                            temperature = d_soil.iloc[0].values[0])
+                            temperature = soil_t['TPSOIL'].iloc[0])
 
-            d_time['thickness'] = d_time[['SNODEN_ML','SNOMA_ML']].apply(lambda x : x[1] / x[0], axis = 1) 
-            d_time['SNOSSA_ML'] = d_time['SNODOPT_ML'].apply(lambda x: 6./(x * DENSITY_OF_ICE) if x>0 else 0) 
-            d_time['corr length'] = d_time[['SNODEN_ML','SNOSSA_ML']].apply(lambda x: debye_eqn(x[1], x[0]), axis = 1)
+            snow_t['thickness'] = snow_t[['SNODEN_ML','SNOMA_ML']].apply(lambda x : x[1] / x[0], axis = 1) 
+            snow_t['SNOSSA_ML'] = snow_t['SNODOPT_ML'].apply(lambda x: 6./(x * DENSITY_OF_ICE) if x>0 else 0) 
+            snow_t['corr length'] = snow_t[['SNODEN_ML','SNOSSA_ML']].apply(lambda x: debye_eqn(x[1], x[0]), axis = 1)
 
-            snowpack = make_snowpack(thickness = d_time['thickness'].values,
+            snowpack = make_snowpack(thickness = snow_t['thickness'].values,
                                      microstructure_model = "exponential",
-                                     density = d_time['SNODEN_ML'].values,
-                                     temperature = d_time['TSNOW_ML'].values,
-                                     corr_length = d_time['corr length'],
+                                     density = snow_t['SNODEN_ML'].values,
+                                     temperature = snow_t['TSNOW_ML'].values,
+                                     corr_length = snow_t['corr length'],
                                      substrate = sub)
 
             #Modeling theories to use in SMRT
             model = make_model(derived_IBA(memls), "dort", rtsolver_options=dict(diagonalization_method="shur_forcedtriu",
                                                                     error_handling='nan'),
                                               emmodel_options=dict(dense_snow_correction='auto'))
-
-            #model = make_model("iba", "dort", rtsolver_options = {'error_handling':'nan', 'phase_normalization' : True})
 
 
             sensor_13GHz  = sensor_list.active(13e9, 35)
@@ -126,18 +172,22 @@ def generate_smrt_output():
             result_13GHz = model.run(sensor_13GHz, snowpack, parallel_computation=False)
             result_17GHz = model.run(sensor_17GHz, snowpack, parallel_computation=False)
             result_5p4GHz = model.run(sensor_5p4GHz, snowpack, parallel_computation=False)
-            #result_5p4GHz = np.nan
 
             sigma_13GHz.append(to_dB(result_13GHz.sigmaVV()))
             sigma_17GHz.append(to_dB(result_17GHz.sigmaVV()))
             sigma_5p4GHz.append(to_dB(result_5p4GHz.sigmaVV()))
-            #sigma_5p4GHz.append(-999.)
+            sigma_diff_13_17.append(result_13GHz.sigmaVV()-result_17GHz.sigmaVV())
+            sigma_diff_13_5p4.append(result_13GHz.sigmaVV()-result_5p4GHz.sigmaVV())
+            sigma_diff_17_5p4.append(result_17GHz.sigmaVV()-result_5p4GHz.sigmaVV())
             time_sigma.append(tt)
         else:
 
             sigma_13GHz.append(-999.)
             sigma_17GHz.append(-999.)
             sigma_5p4GHz.append(-999.)
+            sigma_diff_13_17.append(-999.)
+            sigma_diff_13_5p4.append(-999.)
+            sigma_diff_17_5p4.append(-999.)
             time_sigma.append(tt)
 
 
@@ -147,9 +197,9 @@ def generate_smrt_output():
     smrt['sigma_13GHz'] = sigma_13GHz
     smrt['sigma_17GHz'] = sigma_17GHz
     smrt['sigma_5p4GHz'] = sigma_5p4GHz
-    smrt['sigma_diff_13_17'] = smrt['sigma_13GHz'].values - smrt['sigma_17GHz'].values
-    smrt['sigma_diff_13_5p4'] = smrt['sigma_13GHz'].values - smrt['sigma_5p4GHz'].values
-    smrt['sigma_diff_17_5p4'] = smrt['sigma_17GHz'].values - smrt['sigma_5p4GHz'].values
+    smrt['sigma_diff_13_17'] = sigma_diff_13_17
+    smrt['sigma_diff_13_5p4'] = sigma_diff_13_5p4
+    smrt['sigma_diff_17_5p4'] = sigma_diff_17_5p4
     smrt = smrt.set_index('time')
     smrt_xr = smrt.to_xarray()
                              
