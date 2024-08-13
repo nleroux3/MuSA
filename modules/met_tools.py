@@ -162,61 +162,49 @@ def create_noise(perturbation_strategy, n_steps, mean, std_dev, var):
 
                 norm_noise = np.random.normal(mean, std_dev, n_steps)
                 noise = gexpit(norm_noise, bPmin, bPmax)
-        elif cfg.AR_noise == 'charrois':
-
-            dt_model = 60. * 60 # 60 min forcing  dt in s
-
-            if perturbation_strategy == "normal":
-
-                noise = np.zeros(n_steps)
-                noise[0] = np.random.normal(mean, std_dev, 1)
-
-                epsilon = np.random.normal(mean, std_dev, n_steps)
-                phi = np.exp(-dt_model/cnt.tau[var])
-                
-                for i in range(n_steps-1):
-                    noise[i+1] = noise[i] *phi + epsilon
-
-                idx_outside_bounds = np.argwhere((noise > bPmax) | (noise < bPmin))
-
-                for i in idx_outside_bounds:
-                    noise_i = noise[i]
-                    # redraw until within the bounds
-                    while ((noise_i > bPmax) | (noise_i < bPmin)):
-                        noise_i = np.random.normal(mean, std_dev, 1)
-                    noise[i] = noise_i
-            else:
-                print('ATTENTION: AR in Charrois is only with a normal distribution of the noise')
 
         elif cfg.AR_noise == 'magnusson':
 
             dt_model = 60. * 60 # 60 min forcing  dt in s
 
-            if perturbation_strategy == "normal":
+            # Generate qk, the standard normal distribution
+            # The bounds are applied to qk, not sure that's 100 % appropriate
 
-                noise = np.zeros(n_steps)
-                noise[0] = np.random.normal(mean, std_dev, 1)
- 
-            elif perturbation_strategy == "lognormal":
+            q = np.random.normal(0, 1, 1)
 
-                noise = np.zeros(n_steps)
-                noise[0] = np.random.lognormal(mean, std_dev, 1)
+            q_scaled = (q * std_dev) + mean
+            while (q_scaled > bPmax) | (q_scaled < bPmin):
+                q = np.random.normal(0, 1, 1)
+                q_scaled
 
+            q = np.repeat(q, n_steps)
+
+            # Generate w, the white noise with mean of 0 and variance of 1
+            # Should the bounds be applied to w?
 
             w = np.random.normal(0, 1, n_steps)
+
+            #w_scaled = (w * std_dev) + mean
+            #idx_outside_bounds = np.argwhere((w_scaled > bPmax) | (w_scaled < bPmin))
+            #for i in idx_outside_bounds:
+            #    w_scaled_i = w_scaled[i]
+            #    # redraw until within the bounds
+            #    while ((w_scaled_i > bPmax) | (w_scaled_i < bPmin)):
+            #        w_i = np.random.normal(0, 1, 1)
+            #        w_scaled = (w_i * std_dev) + mean
+            #    w[i] = w_i
+
+            # Eqs 12 & 13 from Magnusson et al. 2017
             alpha = 1.-dt_model/(cnt.tau[var] * 3600.) # tau from hour to s
             
-            for i in range(n_steps-1):
-                noise[i+1] = noise[i] *alpha + np.sqrt(1.-alpha**2)* w[i]
+            for i in range(1,n_steps):
+                q[i] = q[i-1] * alpha + np.sqrt(1.-alpha**2)* w[i-1]
 
-            idx_outside_bounds = np.argwhere((noise > bPmax) | (noise < bPmin))
+            if perturbation_strategy == "normal":
+                noise = q * std_dev  + mean   
+            elif perturbation_strategy == "lognormal":
+                noise = np.exp(q * std_dev  + mean   ) 
 
-            for i in idx_outside_bounds:
-                noise_i = noise[i]
-                # redraw until within the bounds
-                while ((noise_i > bPmax) | (noise_i < bPmin)):
-                    noise_i = np.random.normal(mean, std_dev, 1)
-                noise[i] = noise_i
         else:
             print("ATTENTION: AR_noise is not within the options")
             sys.exit(0)
