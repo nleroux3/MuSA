@@ -13,6 +13,7 @@ sys.path.append('/fs/homeu2/eccc/mrd/ords/rpnenv/nil005/Codes/smrt')
 from smrt import sensor_list, make_model, make_snowpack, make_soil
 from smrt.emmodel.iba import derived_IBA
 from smrt.permittivity.snow_mixing_formula import wetsnow_permittivity_memls as memls
+from concurrent.futures import ProcessPoolExecutor
 
 sys.path.append('/home/nil005/ords/Codes/mironov_soil')
 from mironov import mironov_model
@@ -45,7 +46,42 @@ def generate_encodings(data):
     for var in data.data_vars:
         encoding[var] = DEFAULT_ENCODING.copy()
     return encoding
-                      
+
+def run_SMRT(inputs):
+
+    snow_df, soil_df, freq, clay_perc, rhosoil, mss = inputs[0], inputs[1], inputs[2], inputs[3], inputs[4],  inputs[5]
+
+
+    # Calculate soil permittivity
+    e_r, e_i = mironov_model(soil_df['TPSOIL'].iloc[0]-273.15, clay_perc, soil_df['WSOIL'].iloc[0], rhosoil)
+    eps = complex(e_r, e_i)
+
+    sub = make_soil('geometrical_optics_backscatter', 
+                    permittivity_model = eps, 
+                    mean_square_slope=mss, 
+                    temperature = soil_df['TPSOIL'].iloc[0])
+
+
+    snow_df = snow_df[snow_df['SNOMA_ML'] > 0]  # Select only layers with a mass  
+
+    snowpack = make_snowpack(thickness = snow_df['thickness'].values,
+                             microstructure_model = "exponential",
+                             density = snow_df['SNODEN_ML'].values,
+                             temperature = snow_df['TSNOW_ML'].values,
+                             corr_length = snow_df['corr length'],
+                             substrate = sub)
+
+    #Modeling theories to use in SMRT
+    model = make_model(derived_IBA(memls), "dort", rtsolver_options=dict(diagonalization_method="shur_forcedtriu",
+                                                                error_handling='nan'),
+                                          emmodel_options=dict(dense_snow_correction='auto'))
+
+    sensor  = sensor_list.active(freq, 35)
+    
+    result = model.run(sensor, snowpack, parallel_computation=False)
+    
+    return result
+                  
 def generate_smrt_output():               
     '''
     Roughness model: Geometrical Optics Backscatter model
@@ -102,11 +138,11 @@ def generate_smrt_output():
     df_soil = mod[['WSOIL','TPSOIL']].to_dataframe() 
     df_snow = mod[['SNODEN_ML','SNOMA_ML','TSNOW_ML','SNODOPT_ML','SNODP']].to_dataframe() 
 
-    # SNODEN_ML: densite des couches
-    # SNOMA_ML: SWE des couches
-    # TSNOW_ML: T des couches
-    # SNODOPT_ML: diametre optique des couches
-    # SNODP: hauteur totale du snowpack
+    df_snow['thickness'] = df_snow[['SNODEN_ML','SNOMA_ML']].apply(lambda x : x[1] / x[0], axis = 1) 
+    df_snow['SNOSSA_ML'] = df_snow['SNODOPT_ML'].apply(lambda x: 6./(x * DENSITY_OF_ICE) if x>0 else 0) 
+    df_snow['corr length'] = df_snow[['SNODEN_ML','SNOSSA_ML']].apply(lambda x: debye_eqn(x[1], x[0]), axis = 1)
+
+
 
     if cfg.da_algorithm == "ensemble_OL": # Run SMRT only when we have obs'
         # Get the obs
@@ -135,43 +171,18 @@ def generate_smrt_output():
 
         soil_t = df_soil.loc[tt]
 
-        # Calculate soil permittivity
-        e_r, e_i = mironov_model(soil_t['TPSOIL'].iloc[0]-273.15, clay_perc[0], soil_t['WSOIL'].iloc[0], rhosoil[0])
-        eps = complex(e_r, e_i)
-
 
         if len(snow_t) > 0.: # If there is at least one layer
 
-            sub = make_soil('geometrical_optics_backscatter', 
-                            permittivity_model = eps, 
-                            mean_square_slope=mss, 
-                            temperature = soil_t['TPSOIL'].iloc[0])
 
-            snow_t['thickness'] = snow_t[['SNODEN_ML','SNOMA_ML']].apply(lambda x : x[1] / x[0], axis = 1) 
-            snow_t['SNOSSA_ML'] = snow_t['SNODOPT_ML'].apply(lambda x: 6./(x * DENSITY_OF_ICE) if x>0 else 0) 
-            snow_t['corr length'] = snow_t[['SNODEN_ML','SNOSSA_ML']].apply(lambda x: debye_eqn(x[1], x[0]), axis = 1)
-
-            snowpack = make_snowpack(thickness = snow_t['thickness'].values,
-                                     microstructure_model = "exponential",
-                                     density = snow_t['SNODEN_ML'].values,
-                                     temperature = snow_t['TSNOW_ML'].values,
-                                     corr_length = snow_t['corr length'],
-                                     substrate = sub)
-
-            #Modeling theories to use in SMRT
-            model = make_model(derived_IBA(memls), "dort", rtsolver_options=dict(diagonalization_method="shur_forcedtriu",
-                                                                    error_handling='nan'),
-                                              emmodel_options=dict(dense_snow_correction='auto'))
-
-
-            sensor_13GHz  = sensor_list.active(13e9, 35)
-            sensor_17GHz  = sensor_list.active(17e9, 35)
-            sensor_5p4GHz  = sensor_list.active(5.4e9, 35)
 
             #run the model
-            result_13GHz = model.run(sensor_13GHz, snowpack, parallel_computation=False)
-            result_17GHz = model.run(sensor_17GHz, snowpack, parallel_computation=False)
-            result_5p4GHz = model.run(sensor_5p4GHz, snowpack, parallel_computation=False)
+            with ProcessPoolExecutor(max_workers=3) as p:
+                Results = list(p.map(run_SMRT, [(snow_t, soil_t, 13e9, clay_perc[0], rhosoil[0], mss),(snow_t, soil_t, 17e9, clay_perc[0], rhosoil[0], mss),(snow_t, soil_t, 5.4e9, clay_perc[0], rhosoil[0], mss)]))
+
+            result_13GHz = Results[0]
+            result_17GHz = Results[1]
+            result_5p4GHz = Results[2]
 
             sigma_13GHz.append(to_dB(result_13GHz.sigmaVV()))
             sigma_17GHz.append(to_dB(result_17GHz.sigmaVV()))
