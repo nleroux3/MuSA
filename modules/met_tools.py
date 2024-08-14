@@ -172,10 +172,10 @@ def create_noise(perturbation_strategy, n_steps, mean, std_dev, var):
 
             q = np.random.normal(0, 1, 1)
 
-            q_scaled = (q * std_dev) + mean
-            while (q_scaled > bPmax) | (q_scaled < bPmin):
-                q = np.random.normal(0, 1, 1)
-                q_scaled
+            #q_scaled = (q * std_dev) + mean
+            #while (q_scaled > bPmax) | (q_scaled < bPmin):
+            #    q = np.random.normal(0, 1, 1)
+            #    q_scaled
 
             q = np.repeat(q, n_steps)
 
