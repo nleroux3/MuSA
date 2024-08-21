@@ -13,7 +13,7 @@ sys.path.append('/fs/homeu2/eccc/mrd/ords/rpnenv/nil005/Codes/smrt')
 from smrt import sensor_list, make_model, make_snowpack, make_soil
 from smrt.emmodel.iba import derived_IBA
 from smrt.permittivity.snow_mixing_formula import wetsnow_permittivity_memls as memls
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 sys.path.append('/home/nil005/ords/Codes/mironov_soil')
 from mironov import mironov_model
@@ -47,9 +47,7 @@ def generate_encodings(data):
         encoding[var] = DEFAULT_ENCODING.copy()
     return encoding
 
-def run_SMRT(inputs):
-
-    snow_df, soil_df, freq, clay_perc, rhosoil, mss = inputs[0], inputs[1], inputs[2], inputs[3], inputs[4],  inputs[5]
+def run_SMRT(snow_df, soil_df, freq, clay_perc, rhosoil, mss):
 
 
     # Calculate soil permittivity
@@ -165,6 +163,10 @@ def generate_smrt_output():
     sigma_diff_13_5p4 = []
     sigma_diff_17_5p4 = []
 
+    snow_t_list = []
+    soil_t_list = []
+    time_list = []
+
     for tt in times: # just the last time
         snow_t = df_snow.loc[tt].copy()
         snow_t = snow_t[snow_t['SNOMA_ML'] > 0]  # Select only layers with a mass  
@@ -172,39 +174,47 @@ def generate_smrt_output():
         soil_t = df_soil.loc[tt]
 
 
-        if len(snow_t) > 0.: # If there is at least one layer
+        if len(snow_t) > 0: # If there is at least one layer
 
 
+            snow_t_list.append(snow_t)
+            soil_t_list.append(soil_t)
+            time_list.append(tt)
 
-            #run the model
-            with ProcessPoolExecutor(max_workers=3) as p:
-                Results = list(p.map(run_SMRT, [(snow_t, soil_t, 13e9, clay_perc[0], rhosoil[0], mss),(snow_t, soil_t, 17e9, clay_perc[0], rhosoil[0], mss),(snow_t, soil_t, 5.4e9, clay_perc[0], rhosoil[0], mss)]))
+    input_list_13GHz = [(snow_t_list[i], soil_t_list[i], 13e9, clay_perc[0], rhosoil[0], mss) for i in range(len(time_list))]
+    input_list_17GHz = [(snow_t_list[i], soil_t_list[i], 17e9, clay_perc[0], rhosoil[0], mss) for i in range(len(time_list))]
+    input_list_5p4GHz = [(snow_t_list[i], soil_t_list[i], 5.4e9, clay_perc[0], rhosoil[0], mss) for i in range(len(time_list))]
 
-            result_13GHz = Results[0]
-            result_17GHz = Results[1]
-            result_5p4GHz = Results[2]
+    input_list = input_list_13GHz + input_list_17GHz + input_list_5p4GHz
 
-            sigma_13GHz.append(to_dB(result_13GHz.sigmaVV()))
-            sigma_17GHz.append(to_dB(result_17GHz.sigmaVV()))
-            sigma_5p4GHz.append(to_dB(result_5p4GHz.sigmaVV()))
-            sigma_diff_13_17.append(result_13GHz.sigmaVV()-result_17GHz.sigmaVV())
-            sigma_diff_13_5p4.append(result_13GHz.sigmaVV()-result_5p4GHz.sigmaVV())
-            sigma_diff_17_5p4.append(result_17GHz.sigmaVV()-result_5p4GHz.sigmaVV())
-            time_sigma.append(tt)
-        else:
+    #run the model
+    with ProcessPoolExecutor() as executor :
+        # Submit the tasks to the executor
+        futures = {executor.submit(run_SMRT, *args): i for i, args in enumerate(input_list)}
 
-            sigma_13GHz.append(-999.)
-            sigma_17GHz.append(-999.)
-            sigma_5p4GHz.append(-999.)
-            sigma_diff_13_17.append(-999.)
-            sigma_diff_13_5p4.append(-999.)
-            sigma_diff_17_5p4.append(-999.)
-            time_sigma.append(tt)
+    # Initialize a list to store results in the correct order
+    results = [None] * len(input_list)
 
+    # Process the results as they complete
+    for future in as_completed(futures):
+        index = futures[future]
+        results[index] = future.result()
+
+
+    result_13GHz = results[:int(len(input_list)/3)]
+    result_17GHz = results[int(len(input_list)/3):int(2*len(input_list)/3)]
+    result_5p4GHz = results[int(2*len(input_list)/3):]
+
+    sigma_13GHz = [to_dB(a.sigmaVV()) for a in result_13GHz]
+    sigma_17GHz = [to_dB(a.sigmaVV()) for a in result_17GHz]
+    sigma_5p4GHz = [to_dB(a.sigmaVV()) for a in result_5p4GHz]
+    sigma_diff_13_17 = [a.sigmaVV() - b.sigmaVV() for (a, b) in zip(result_13GHz, result_17GHz)]
+    sigma_diff_13_5p4 = [a.sigmaVV() - b.sigmaVV() for (a, b) in zip(result_13GHz, result_5p4GHz)]
+    sigma_diff_17_5p4 = [a.sigmaVV() - b.sigmaVV() for (a, b) in zip(result_17GHz, result_5p4GHz)]
 
                              
     smrt = pd.DataFrame()
-    smrt['time'] = time_sigma
+    smrt['time'] = time_list
     smrt['sigma_13GHz'] = sigma_13GHz
     smrt['sigma_17GHz'] = sigma_17GHz
     smrt['sigma_5p4GHz'] = sigma_5p4GHz
