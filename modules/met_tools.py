@@ -340,20 +340,58 @@ def perturb_parameters(main_forcing, lat_idx=None, lon_idx=None, member=None,
         noise_storage[var_tmp] = noise_coef
         
         if (cfg.lperturb_LW):
-            #These values are specific to Powasson, would want to update it for different sights
-            #LW = a*TA+b
-            #LW = 4.12893074*T-854.1108168
-            forcing_copy['FLIN'] = ((forcing_copy['TA'].values+273.15)*4.12893074) - 854.1108168
+            if var_tmp == 'TA': #This will only work if you pertrub temp too, and if the temp perturbation is additive
+                #These values are specific to Powasson, would want to update it for different sights
+                
+                #LW = a*TA+b
+                #LW = 4.12893074*T-854.1108168
+                #forcing_copy['FLIN'] = ((forcing_copy['TA'].values+273.15)*4.12893074) - 854.1108168
+            
+                #temp change is is additive so the change in temp is the perturbation value
+                #Change in LW is (change of temp)*slope 
+                #then add to the value of LW so it is staying correlated but keeping the original value of LW involved in the calculation
+                LW_change = 4.12893074*noise_coef
+                forcing_copy['FLIN'] = forcing_copy['FLIN']+LW_change
+                #add this perturbation to the noise dictionary so we can see it in outputs
+                noise_storage['FLIN'] = LW_change
             
         
-        #if shortwave is perturbed and PRE >0, then cap the SW to 200 W/m2
         if var_tmp == 'FSIN':
             precip = forcing_copy['PRE'].values
             shortwave = forcing_copy['FSIN'].values
             forcing_copy = forcing_copy.reset_index(drop=True)
             for i in range(len(precip)):
-                if (precip[i]>0) & (shortwave[i]>200):
-                    forcing_copy.loc[i, 'FSIN'] = 200
+                if (precip[i]>(0.1/3600)) & (shortwave[i]>300): #recall, precip in mm/s
+                    forcing_copy.loc[i, 'FSIN'] = 300
+            #if doing a multiplicative perturbation there is no way for it to go below 0, but adding this in anyway
+                if (shortwave[i]<0.):
+                    forcing_copy.loc[i, 'FSIN'] = 0.
+        
+        #if LW is below 0, set it to 0
+        if (var_tmp == 'FLIN') or (cfg.lperturb_LW):
+            longwave = forcing_copy['FLIN'].values
+            for i in range(len(longwave)):
+                if (longwave[i]<0.):
+                    forcing_copy.loc[i, 'FLIN'] = 0.
+                
+                    
+        #if PRE is below 0, set it to 0
+        #if doing a multiplicative perturbation there is no way for it to go below 0, but adding this in anyway
+        if var_tmp == 'PRE':
+            precip = forcing_copy['PRE'].values
+            for i in range(len(precip)):
+                if (precip[i]<0.):
+                    forcing_copy.loc[i, 'PRE'] = 0.
+                    
+        #limit windspeed between 0.5 and 25 m/s (Magnusson et al., 2017)
+        if var_tmp =='UV':
+            windspeed = forcing_copy['UV'].values
+            for i in range(len(windspeed)):
+                if (windspeed[i]<0.5):
+                    forcing_copy.loc[i, 'UV'] = 0.5
+                    
+                if (windspeed[i]>25):
+                    forcing_copy.loc[i, 'UV'] = 25.
                     
 
     return forcing_copy, noise_storage
