@@ -7,7 +7,6 @@ conda activate MuSAenv
 
 
 # Run synthetic experiment for TVC
-ln -sf constants_svs2_TVC_synth_exp.py constants.py
 ln -sf /home/nil005/store6/Driving_Data/MuSA_PF/exp_cfg/param_file/MESH_parameters_TVC_restart.txt /home/nil005/store6/Driving_Data/MuSA_PF/exp_cfg/param_file/MESH_parameters_restart.txt
 ln -sf /home/nil005/store6/Driving_Data/MuSA_PF/exp_cfg/param_file/MESH_parameters_TVC_stop.txt /home/nil005/store6/Driving_Data/MuSA_PF/exp_cfg/param_file/MESH_parameters_stop.txt
 
@@ -16,6 +15,17 @@ OUTPUT_FOLDER='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/outpu
 ##########################################################
 ## OL
 ##########################################################
+
+# Create temporary MuSA exp folder to run the experiment in
+MuSA_exp_temp='/home/nil005/store5/tmp/MuSA_exp_'$(date +%Y%m%d%H%M%S)
+
+mkdir -p ${MuSA_exp_temp}
+cp -r /home/nil005/ords/Codes/MuSA/* ${MuSA_exp_temp}
+cd ${MuSA_exp_temp}
+
+# Symbolic link to the desired constant file
+ln -sf constants_svs2_TVC_synth_exp.py constants.py
+
 
 DA_ALGORITHM='ensemble_OL'
 NB_MEMBERS='100'
@@ -27,6 +37,7 @@ OBS_FILE='/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/obs/obs_TVC_synth_w
 NAME_OUTPUT='cell_TVC_OL_weekly'
 NAME_ENSEMBLE_OUTPUT='ensbl_TVC_OL_weekly' 
 NAME_VERT_PROFILES_OUTPUT='out_snow_vert_TVC_OL_weekly'
+
 TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$(date +%Y%m%d%H%M%S)
 
 mkdir -p ${TMP_PATH}
@@ -46,7 +57,17 @@ fi
 ##########################################################
 ## Assimilating sigma_13GHz
 ##########################################################
+# Create temporary MuSA exp folder to run the experiment in
+MuSA_exp_temp='/home/nil005/store5/tmp/MuSA_exp_'$(date +%Y%m%d%H%M%S)
 
+mkdir -p ${MuSA_exp_temp}
+cp -r /home/nil005/ords/Codes/MuSA/* ${MuSA_exp_temp}
+cd ${MuSA_exp_temp}
+
+# Symbolic link to the desired constant file
+ln -sf constants_svs2_TVC_synth_exp.py constants.py
+
+# Parameters needed in the config file
 DA_ALGORITHM='PF'
 NB_MEMBERS='100'
 VAR_ASSIM="'"sigma_13GHz"'"
@@ -62,7 +83,7 @@ TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$
 mkdir -p ${TMP_PATH}
 mkdir -p ${TMP_PATH}'/output'
 
-
+# Do a 'sed' in the config file
 sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
@@ -76,7 +97,17 @@ fi
 ##########################################################
 ## Assimilating sigma_17GHz
 ##########################################################
+# Create temporary MuSA exp folder to run the experiment in
+MuSA_exp_temp='/home/nil005/store5/tmp/MuSA_exp_'$(date +%Y%m%d%H%M%S)
 
+mkdir -p ${MuSA_exp_temp}
+cp -r /home/nil005/ords/Codes/MuSA/* ${MuSA_exp_temp}
+cd ${MuSA_exp_temp}
+
+# Symbolic link to the desired constant file
+ln -sf constants_svs2_TVC_synth_exp.py constants.py
+
+# Parameters needed in the config file
 DA_ALGORITHM='PF'
 NB_MEMBERS='100'
 VAR_ASSIM="'"sigma_17GHz"'"
@@ -92,9 +123,8 @@ TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$
 mkdir -p ${TMP_PATH}
 mkdir -p ${TMP_PATH}'/output'
 
-
+# Do a 'sed' in the config file
 sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
-
 
 ### Run the data assimilation if output file does not exist - might need to be commented
 if [ ! -f $OUTPUT_FOLDER/$NAME_ENSEMBLE_OUTPUT.pkl.blp ]; then
@@ -107,6 +137,17 @@ fi
 ##########################################################
 ## Assimilating difference sigma_13GHz and sigma_17GHz
 ##########################################################
+# Create temporary MuSA exp folder to run the experiment in
+MuSA_exp_temp='/home/nil005/store5/tmp/MuSA_exp_'$(date +%Y%m%d%H%M%S)
+
+mkdir -p ${MuSA_exp_temp}
+cp -r /home/nil005/ords/Codes/MuSA/* ${MuSA_exp_temp}
+cd ${MuSA_exp_temp}
+
+# Symbolic link to the desired constant file
+ln -sf constants_svs2_TVC_synth_exp.py constants.py
+
+# Parameters needed in the config file
 DA_ALGORITHM='PF'
 NB_MEMBERS='100'
 VAR_ASSIM="'"sigma_diff_13_17"'"
@@ -122,7 +163,7 @@ TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$
 mkdir -p ${TMP_PATH}
 mkdir -p ${TMP_PATH}'/output'
 
-
+# Do a 'sed' in the config file
 sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
@@ -136,6 +177,17 @@ fi
 ##########################################################
 ## Assimilating difference sigma_13GHz and sigma_5.4GHz
 ##########################################################
+# Create temporary MuSA exp folder to run the experiment in
+MuSA_exp_temp='/home/nil005/store5/tmp/MuSA_exp_'$(date +%Y%m%d%H%M%S)
+
+mkdir -p ${MuSA_exp_temp}
+cp -r /home/nil005/ords/Codes/MuSA/* ${MuSA_exp_temp}
+cd ${MuSA_exp_temp}
+
+# Symbolic link to the desired constant file
+ln -sf constants_svs2_TVC_synth_exp.py constants.py
+
+# Parameters needed in the config file
 DA_ALGORITHM='PF'
 NB_MEMBERS='100'
 VAR_ASSIM="'"sigma_diff_13_5p4"'"
@@ -151,7 +203,7 @@ TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$
 mkdir -p ${TMP_PATH}
 mkdir -p ${TMP_PATH}'/output'
 
-
+# Do a 'sed' in the config file
 sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
@@ -162,9 +214,22 @@ if [ ! -f $OUTPUT_FOLDER/$NAME_ENSEMBLE_OUTPUT.pkl.blp ]; then
 fi
 
 
+
 ##########################################################
 ## Assimilating difference sigma_17GHz and sigma_5p4GHz
 ##########################################################
+# Create temporary MuSA exp folder to run the experiment in
+MuSA_exp_temp='/home/nil005/store5/tmp/MuSA_exp_'$(date +%Y%m%d%H%M%S)
+
+mkdir -p ${MuSA_exp_temp}
+cp -r /home/nil005/ords/Codes/MuSA/* ${MuSA_exp_temp}
+cd ${MuSA_exp_temp}
+
+# Symbolic link to the desired constant file
+ln -sf constants_svs2_TVC_synth_exp.py constants.py
+
+# Parameters needed in the config file
+
 DA_ALGORITHM='PF'
 NB_MEMBERS='100'
 VAR_ASSIM="'"sigma_diff_17_5p4"'"
@@ -180,7 +245,7 @@ TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$
 mkdir -p ${TMP_PATH}
 mkdir -p ${TMP_PATH}'/output'
 
-
+# Do a 'sed' in the config file
 sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
@@ -191,9 +256,21 @@ if [ ! -f $OUTPUT_FOLDER/$NAME_ENSEMBLE_OUTPUT.pkl.blp ]; then
 fi
 
 
+
 ##########################################################
 ## Assimilating sigma_13GHz and sigma_17GHz
 ##########################################################
+# Create temporary MuSA exp folder to run the experiment in
+MuSA_exp_temp='/home/nil005/store5/tmp/MuSA_exp_'$(date +%Y%m%d%H%M%S)
+
+mkdir -p ${MuSA_exp_temp}
+cp -r /home/nil005/ords/Codes/MuSA/* ${MuSA_exp_temp}
+cd ${MuSA_exp_temp}
+
+# Symbolic link to the desired constant file
+ln -sf constants_svs2_TVC_synth_exp.py constants.py
+
+# Parameters needed in the config file
 
 DA_ALGORITHM='PF'
 NB_MEMBERS='100'
@@ -211,7 +288,7 @@ TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$
 mkdir -p ${TMP_PATH}
 mkdir -p ${TMP_PATH}'/output'
 
-
+# Do a 'sed' in the config file
 sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
@@ -225,6 +302,17 @@ fi
 ##########################################################
 ## Assimilating sigma_13GHz, sigma_17GHz, sigma_5p4GHz
 ##########################################################
+# Create temporary MuSA exp folder to run the experiment in
+MuSA_exp_temp='/home/nil005/store5/tmp/MuSA_exp_'$(date +%Y%m%d%H%M%S)
+
+mkdir -p ${MuSA_exp_temp}
+cp -r /home/nil005/ords/Codes/MuSA/* ${MuSA_exp_temp}
+cd ${MuSA_exp_temp}
+
+# Symbolic link to the desired constant file
+ln -sf constants_svs2_TVC_synth_exp.py constants.py
+
+# Parameters needed in the config file
 
 DA_ALGORITHM='PF'
 NB_MEMBERS='100'
@@ -242,7 +330,7 @@ TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$
 mkdir -p ${TMP_PATH}
 mkdir -p ${TMP_PATH}'/output'
 
-
+# Do a 'sed' in the config file
 sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
@@ -256,6 +344,17 @@ fi
 ##########################################################
 ## Assimilating sigma_13GHz and difference sigma_13GHz and sigma_17GHz
 ##########################################################
+# Create temporary MuSA exp folder to run the experiment in
+MuSA_exp_temp='/home/nil005/store5/tmp/MuSA_exp_'$(date +%Y%m%d%H%M%S)
+
+mkdir -p ${MuSA_exp_temp}
+cp -r /home/nil005/ords/Codes/MuSA/* ${MuSA_exp_temp}
+cd ${MuSA_exp_temp}
+
+# Symbolic link to the desired constant file
+ln -sf constants_svs2_TVC_synth_exp.py constants.py
+
+# Parameters needed in the config file
 DA_ALGORITHM='PF'
 NB_MEMBERS='100'
 VAR_ASSIM="'"sigma_13GHz"'","'"sigma_diff_13_17"'"
@@ -271,7 +370,7 @@ TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$
 mkdir -p ${TMP_PATH}
 mkdir -p ${TMP_PATH}'/output'
 
-
+# Do a 'sed' in the config file
 sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
@@ -285,6 +384,17 @@ fi
 ##########################################################
 ## Assimilating sigma_17GHz and difference sigma_13GHz and sigma_17GHz
 ##########################################################
+# Create temporary MuSA exp folder to run the experiment in
+MuSA_exp_temp='/home/nil005/store5/tmp/MuSA_exp_'$(date +%Y%m%d%H%M%S)
+
+mkdir -p ${MuSA_exp_temp}
+cp -r /home/nil005/ords/Codes/MuSA/* ${MuSA_exp_temp}
+cd ${MuSA_exp_temp}
+
+# Symbolic link to the desired constant file
+ln -sf constants_svs2_TVC_synth_exp.py constants.py
+
+# Parameters needed in the config file
 DA_ALGORITHM='PF'
 NB_MEMBERS='100'
 VAR_ASSIM="'"sigma_17GHz"'","'"sigma_diff_13_17"'"
@@ -300,7 +410,7 @@ TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$
 mkdir -p ${TMP_PATH}
 mkdir -p ${TMP_PATH}'/output'
 
-
+# Do a 'sed' in the config file
 sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
@@ -314,7 +424,17 @@ fi
 ##########################################################
 ## Assimilating SWE
 ##########################################################
+# Create temporary MuSA exp folder to run the experiment in
+MuSA_exp_temp='/home/nil005/store5/tmp/MuSA_exp_'$(date +%Y%m%d%H%M%S)
 
+mkdir -p ${MuSA_exp_temp}
+cp -r /home/nil005/ords/Codes/MuSA/* ${MuSA_exp_temp}
+cd ${MuSA_exp_temp}
+
+# Symbolic link to the desired constant file
+ln -sf constants_svs2_TVC_synth_exp.py constants.py
+
+# Parameters needed in the config file
 DA_ALGORITHM='PF'
 NB_MEMBERS='100'
 VAR_ASSIM="'"swe"'"
@@ -331,7 +451,7 @@ TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$
 mkdir -p ${TMP_PATH}
 mkdir -p ${TMP_PATH}'/output'
 
-
+# Do a 'sed' in the config file
 sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
@@ -342,10 +462,21 @@ if [ ! -f $OUTPUT_FOLDER/$NAME_ENSEMBLE_OUTPUT.pkl.blp ]; then
 fi
 
 
+
 ##########################################################
 ## Assimilating SD
 ##########################################################
+# Create temporary MuSA exp folder to run the experiment in
+MuSA_exp_temp='/home/nil005/store5/tmp/MuSA_exp_'$(date +%Y%m%d%H%M%S)
 
+mkdir -p ${MuSA_exp_temp}
+cp -r /home/nil005/ords/Codes/MuSA/* ${MuSA_exp_temp}
+cd ${MuSA_exp_temp}
+
+# Symbolic link to the desired constant file
+ln -sf constants_svs2_TVC_synth_exp.py constants.py
+
+# Parameters needed in the config file
 DA_ALGORITHM='PF'
 NB_MEMBERS='100'
 VAR_ASSIM="'"sd"'"
@@ -362,7 +493,7 @@ TMP_PATH='/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_'$
 mkdir -p ${TMP_PATH}
 mkdir -p ${TMP_PATH}'/output'
 
-
+# Do a 'sed' in the config file
 sed "s|OBS_FILE|${OBS_FILE}|g; s|NAME_OUTPUT|${NAME_OUTPUT}|g; s|NAME_ENSEMBLE_OUTPUT|${NAME_ENSEMBLE_OUTPUT}|g; s|NAME_VERT_PROFILES_OUTPUT|${NAME_VERT_PROFILES_OUTPUT}|g; s|DA_ALGORITHM|${DA_ALGORITHM}|g; s|NB_MEMBERS|${NB_MEMBERS}|g ; s|VAR_ASSIM|${VAR_ASSIM}|g; s|ERROR_VAR_NAMES|${ERROR_VAR_NAMES}|g ; s|R_COV|${R_COV}|g; s|TMP_PATH|${TMP_PATH}|g" config_svs2_TVC_synth_exp.py >  config.py
 
 ### Run the data assimilation if output file does not exist - might need to be commented
@@ -375,5 +506,7 @@ fi
 
 
 wait
+# Cleaning the temporary folders
 rm -r /home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp_*
+rm -r /home/nil005/store5/tmp/MuSA_exp_*
 

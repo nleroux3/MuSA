@@ -329,7 +329,6 @@ def perturb_parameters(main_forcing, lat_idx=None, lon_idx=None, member=None,
 
         noise_coef = add_process_noise(noise_coef, var_tmp, strategy_tmp)
 
-
         # If lognormal perturbation multiplicate, else add
         if strategy_tmp in ["lognormal", "logitnormal_mult"]:
             forcing_copy[var_tmp] = forcing_copy[var_tmp].values * noise_coef
@@ -351,7 +350,7 @@ def perturb_parameters(main_forcing, lat_idx=None, lon_idx=None, member=None,
                 #Change in LW is (change of temp)*slope 
                 #then add to the value of LW so it is staying correlated but keeping the original value of LW involved in the calculation
                 LW_change = 4.12893074*noise_coef
-                forcing_copy['FLIN'] = forcing_copy['FLIN']+LW_change
+                forcing_copy['FLIN'] = forcing_copy['FLIN'].values+LW_change
                 #add this perturbation to the noise dictionary so we can see it in outputs
                 noise_storage['FLIN'] = LW_change
             
@@ -359,39 +358,32 @@ def perturb_parameters(main_forcing, lat_idx=None, lon_idx=None, member=None,
         if var_tmp == 'FSIN':
             precip = forcing_copy['PRE'].values
             shortwave = forcing_copy['FSIN'].values
-            forcing_copy = forcing_copy.reset_index(drop=True)
-            for i in range(len(precip)):
-                if (precip[i]>(0.1/3600)) & (shortwave[i]>300): #recall, precip in mm/s
-                    forcing_copy.loc[i, 'FSIN'] = 300
-            #if doing a multiplicative perturbation there is no way for it to go below 0, but adding this in anyway
-                if (shortwave[i]<0.):
-                    forcing_copy.loc[i, 'FSIN'] = 0.
+            mask = (precip>(0.1/3600)) & (shortwave>300.)
+            shortwave[mask] = 300.
+            shortwave = np.maximum(shortwave, 0.)
+            forcing_copy['FSIN'] = shortwave
         
         #if LW is below 0, set it to 0
         if (var_tmp == 'FLIN') or (cfg.lperturb_LW):
             longwave = forcing_copy['FLIN'].values
-            for i in range(len(longwave)):
-                if (longwave[i]<0.):
-                    forcing_copy.loc[i, 'FLIN'] = 0.
+            longwave = np.maximum(longwave, 0.)
+            forcing_copy['FLIN'] = longwave
                 
                     
         #if PRE is below 0, set it to 0
         #if doing a multiplicative perturbation there is no way for it to go below 0, but adding this in anyway
         if var_tmp == 'PRE':
             precip = forcing_copy['PRE'].values
-            for i in range(len(precip)):
-                if (precip[i]<0.):
-                    forcing_copy.loc[i, 'PRE'] = 0.
+            precip = np.maximum(precip, 0.)
+            forcing_copy['PRE'] = precip
+
                     
         #limit windspeed between 0.5 and 25 m/s (Magnusson et al., 2017)
         if var_tmp =='UV':
             windspeed = forcing_copy['UV'].values
-            for i in range(len(windspeed)):
-                if (windspeed[i]<0.5):
-                    forcing_copy.loc[i, 'UV'] = 0.5
-                    
-                if (windspeed[i]>25):
-                    forcing_copy.loc[i, 'UV'] = 25.
+            windspeed = np.maximum(windspeed, 0.5)
+            windspeed = np.minimum(windspeed, 25.)
+            forcing_copy['UV'] = windspeed
                     
 
     return forcing_copy, noise_storage
