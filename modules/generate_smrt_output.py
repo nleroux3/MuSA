@@ -160,7 +160,7 @@ def generate_smrt_output():
         # Snow profile outputs are every 6 h     
         time_bgn = pd.to_datetime(str(mod.time.values[0]))
         time_end = pd.to_datetime(str(mod.time.values[-1]))                                        
-        times = pd.date_range(start = time_bgn , end = time_end , freq = '6H')   
+        times = pd.date_range(start = time_bgn , end = time_end , freq = '1H')   
         times = times[-1:] # just the last time of each assimilation step for now, saves time
 
         # Every 6 h
@@ -234,6 +234,7 @@ def generate_smrt_output():
     smrt['sigma_diff_17_5p4'] = sigma_diff_17_5p4
     smrt = smrt.replace(np.nan, -9999.)
     smrt = smrt.set_index('time')
+
     smrt_xr = smrt.to_xarray()
                              
     # Write netcdf   
