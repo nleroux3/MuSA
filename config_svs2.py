@@ -14,6 +14,7 @@ numerical_model = 'svs2'  # model to use from FSM2, dIm or snow17
 obs_file = '/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/obs/obs_Powassan_synth_weekly_noLiq.nc'
 intermediate_path = "./DATA/INTERMEDIATE/"
 file_forcing = '/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/Input_MESH/basin_forcing_Powassan_2223.met'
+
 dir_exp = '/home/nil005/store6/Driving_Data/MuSA_PF/'
 save_ensemble_path = "/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/output_paper/"
 output_path = "/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/output_paper/"
