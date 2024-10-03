@@ -148,12 +148,25 @@ def generate_smrt_output():
         # Get the obs
         obs = xr.open_dataset(cfg.obs_file).to_dataframe()
         times = obs.index
+    
+        # The full snowpack vertical properties is outputted every 6 h
+        #time_bgn = pd.to_datetime(str(mod.time.values[0]))
+        #time_bgn_D = time_bgn.floor('D')
+        #time_end = pd.to_datetime(str(mod.time.values[-1]))                                        
+        #times = pd.date_range(start = time_bgn_D , end = time_end , freq = '6H') 
+        #times = times[times > time_bgn]
+
     else:
         # Snow profile outputs are every 6 h     
         time_bgn = pd.to_datetime(str(mod.time.values[0]))
         time_end = pd.to_datetime(str(mod.time.values[-1]))                                        
-        times = pd.date_range(start = time_bgn , end = time_end , freq = '1H')   
+        times = pd.date_range(start = time_bgn , end = time_end , freq = '6H')   
         times = times[-1:] # just the last time of each assimilation step for now, saves time
+
+        # Every 6 h
+        #time_bgn_D = time_bgn.floor('D')
+        #times = pd.date_range(start = time_bgn_D , end = time_end , freq = '6H') 
+        #times = times[times > time_bgn]
                           
 
     # Get backscatter from SMRT from the times when we have snow profile outputs
@@ -174,10 +187,6 @@ def generate_smrt_output():
         snow_t = snow_t[snow_t['SNOMA_ML'] > 0]  # Select only layers with a mass  
 
         soil_t = df_soil.loc[tt]
-
-
-        #if len(snow_t) > 0: # If there is at least one layer
-
 
         snow_t_list.append(snow_t)
         soil_t_list.append(soil_t)

@@ -165,45 +165,47 @@ def create_noise(perturbation_strategy, n_steps, mean, std_dev, var):
 
         elif cfg.AR_noise == 'magnusson':
 
-            dt_model = 60. * 60 # 60 min forcing  dt in s
+            dt_model = 60. * 60. # 60 min forcing  dt in s
 
-            # Generate qk, the standard normal distribution
-            # The bounds are applied to qk, not sure that's 100 % appropriate
+            q = np.zeros(n_steps) + np.nan
 
-            q = np.random.normal(0, 1, 1)
-
-            #q_scaled = (q * std_dev) + mean
-            #while (q_scaled > bPmax) | (q_scaled < bPmin):
-            #    q = np.random.normal(0, 1, 1)
-            #    q_scaled
-
-            q = np.repeat(q, n_steps)
-
-            # Generate w, the white noise with mean of 0 and variance of 1
-            # Should the bounds be applied to w?
+            q[0] = np.random.normal(0, 1, 1)
 
             w = np.random.normal(0, 1, n_steps)
-
-            #w_scaled = (w * std_dev) + mean
-            #idx_outside_bounds = np.argwhere((w_scaled > bPmax) | (w_scaled < bPmin))
-            #for i in idx_outside_bounds:
-            #    w_scaled_i = w_scaled[i]
-            #    # redraw until within the bounds
-            #    while ((w_scaled_i > bPmax) | (w_scaled_i < bPmin)):
-            #        w_i = np.random.normal(0, 1, 1)
-            #        w_scaled = (w_i * std_dev) + mean
-            #    w[i] = w_i
 
             # Eqs 12 & 13 from Magnusson et al. 2017
             alpha = 1.-dt_model/(cnt.tau[var] * 3600.) # tau from hour to s
             
             for i in range(1,n_steps):
-                q[i] = q[i-1] * alpha + np.sqrt(1.-alpha**2)* w[i-1]
+                q[i] = q[i-1] * alpha + np.sqrt(1.-alpha**2)* w[i]
 
             if perturbation_strategy == "normal":
                 noise = q * std_dev  + mean   
             elif perturbation_strategy == "lognormal":
                 noise = np.exp(q * std_dev  + mean   ) 
+
+
+        elif cfg.AR_noise == 'charrois':
+
+            dt_model = 60. * 60. # 60 min forcing  dt in s
+            phi = np.exp(-dt_model / (cnt.tau[var] * 3600.))
+
+            noise = np.zeros(n_steps) + np.nan
+
+            noise[0] = np.random.normal(0, std_dev, 1)
+
+            variance_epsilon =  std_dev**2*(1.-phi**2)
+
+            epsilon = np.random.normal(0, np.sqrt(variance_epsilon), n_steps)
+
+
+            for i in range(1,n_steps):
+                noise[i] = noise[i-1] * phi + epsilon[i]
+
+            if perturbation_strategy == "lognormal":
+                noise = noise + 1. 
+
+
 
         else:
             print("ATTENTION: AR_noise is not within the options")
@@ -343,13 +345,13 @@ def perturb_parameters(main_forcing, lat_idx=None, lon_idx=None, member=None,
                 #These values are specific to Powasson, would want to update it for different sights
                 
                 #LW = a*TA+b
-                #LW = 4.12893074*T-854.1108168
-                #forcing_copy['FLIN'] = ((forcing_copy['TA'].values+273.15)*4.12893074) - 854.1108168
+                #LW = 3.71268891*T-743.4975539711769
+                #forcing_copy['FLIN'] = ((forcing_copy['TA'].values+273.15)*3.71268891) - 743.4975539711769
             
                 #temp change is is additive so the change in temp is the perturbation value
                 #Change in LW is (change of temp)*slope 
                 #then add to the value of LW so it is staying correlated but keeping the original value of LW involved in the calculation
-                LW_change = 4.12893074*noise_coef
+                LW_change = 3.71268891*noise_coef
                 forcing_copy['FLIN'] = forcing_copy['FLIN'].values+LW_change
                 #add this perturbation to the noise dictionary so we can see it in outputs
                 noise_storage['FLIN'] = LW_change
