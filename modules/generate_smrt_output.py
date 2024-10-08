@@ -6,6 +6,7 @@ import xarray as xr
 import numpy as np
 import config as cfg
 
+from modules.radar_equivalent_snow import *
 
 import sys
 sys.path.append('/fs/homeu2/eccc/mrd/ords/rpnenv/nil005/Codes/smrt')
@@ -24,7 +25,10 @@ DENSITY_OF_ICE = 917.
 
 # Functions
 def debye_eqn(ssa, density):
-    return 4. * (1. - density / DENSITY_OF_ICE) / (ssa * DENSITY_OF_ICE)  
+    if ssa == 0 :
+        return np.nan
+    else:
+        return 4. * (1. - density / DENSITY_OF_ICE) / (ssa * DENSITY_OF_ICE)  
 
 
 def to_dB(data):
@@ -61,8 +65,6 @@ def run_SMRT(snow_df, soil_df, freq, clay_perc, rhosoil, mss):
                         mean_square_slope=mss, 
                         temperature = soil_df['TPSOIL'].iloc[0])
 
-
-        snow_df = snow_df[snow_df['SNOMA_ML'] > 0]  # Select only layers with a mass  
 
         snowpack = make_snowpack(thickness = snow_df['thickness'].values,
                                  microstructure_model = "exponential",
@@ -142,8 +144,6 @@ def generate_smrt_output():
     df_snow['SNOSSA_ML'] = df_snow['SNODOPT_ML'].apply(lambda x: 6./(x * DENSITY_OF_ICE) if x>0 else 0) 
     df_snow['corr length'] = df_snow[['SNODEN_ML','SNOSSA_ML']].apply(lambda x: debye_eqn(x[1], x[0]), axis = 1)
 
-
-
     if cfg.da_algorithm == "ensemble_OL": # Run SMRT only when we have obs'
         # Get the obs
         obs = xr.open_dataset(cfg.obs_file).to_dataframe()
@@ -167,7 +167,29 @@ def generate_smrt_output():
         #time_bgn_D = time_bgn.floor('D')
         #times = pd.date_range(start = time_bgn_D , end = time_end , freq = '6H') 
         #times = times[times > time_bgn]
-                          
+          
+
+
+    df_snow.loc[:, 'height'] = np.nan
+    for date in times:
+        df_temp = df_snow.loc[date].copy()
+        df_snow.loc[date,'height'] = np.cumsum(df_temp.thickness.values[::-1])[::-1]
+                
+    # Get the snowpacks for SMRT
+    if cfg.radar_equivalent_snow:
+        snow_t_13GHz = [three_layer_k(df_snow.loc[date], method = 'thick-ke-density', freq = 13e9) for date in times]
+        snow_t_17GHz = [three_layer_k(df_snow.loc[date], method = 'thick-ke-density', freq = 17e9) for date in times]
+        snow_t_5p4GHz = [three_layer_k(df_snow.loc[date], method = 'thick-ke-density', freq = 5.4e9) for date in times]
+    else:
+        snow_t_list = []
+        for tt in times: 
+            snow_t = df_snow.loc[tt].copy()
+            snow_t = snow_t[snow_t['SNOMA_ML'] > 0]
+            snow_t_list.append(snow_t)
+        snow_t_13GHz = snow_t_list.copy()
+        snow_t_17GHz = snow_t_list.copy()
+        snow_t_5p4GHz = snow_t_list.copy()
+
 
     # Get backscatter from SMRT from the times when we have snow profile outputs
     sigma_13GHz = []
@@ -178,23 +200,18 @@ def generate_smrt_output():
     sigma_diff_13_5p4 = []
     sigma_diff_17_5p4 = []
 
-    snow_t_list = []
+
     soil_t_list = []
     time_list = []
 
-    for tt in times: # just the last time
-        snow_t = df_snow.loc[tt].copy()
-        snow_t = snow_t[snow_t['SNOMA_ML'] > 0]  # Select only layers with a mass  
-
+    for tt in times: 
         soil_t = df_soil.loc[tt]
-
-        snow_t_list.append(snow_t)
         soil_t_list.append(soil_t)
         time_list.append(tt)
 
-    input_list_13GHz = [(snow_t_list[i], soil_t_list[i], 13e9, clay_perc[0], rhosoil[0], mss) for i in range(len(time_list))]
-    input_list_17GHz = [(snow_t_list[i], soil_t_list[i], 17e9, clay_perc[0], rhosoil[0], mss) for i in range(len(time_list))]
-    input_list_5p4GHz = [(snow_t_list[i], soil_t_list[i], 5.4e9, clay_perc[0], rhosoil[0], mss) for i in range(len(time_list))]
+    input_list_13GHz = [(snow_t_13GHz[i], soil_t_list[i], 13e9, clay_perc[0], rhosoil[0], mss) for i in range(len(time_list))]
+    input_list_17GHz = [(snow_t_17GHz[i], soil_t_list[i], 17e9, clay_perc[0], rhosoil[0], mss) for i in range(len(time_list))]
+    input_list_5p4GHz = [(snow_t_5p4GHz[i], soil_t_list[i], 5.4e9, clay_perc[0], rhosoil[0], mss) for i in range(len(time_list))]
 
     input_list = input_list_13GHz + input_list_17GHz + input_list_5p4GHz
 

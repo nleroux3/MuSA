@@ -25,6 +25,8 @@ tmp_path = '/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp'
 
 mesh_exe = '/home/nil005/ords/Codes/MESH_SVS/MESH_SVS_workMuSA/sa_mesh'
 
+# Use J.Meloche radar_equivalent_snow code to simplify the snowpack into 3 layers before runing SMRT
+radar_equivalent_snow = False
 
 # If restart_run is enabled, the outputs will not be overwritten
 restart_run = False
