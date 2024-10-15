@@ -6,22 +6,27 @@ Note that not all the options will be used in all the experimental setups.
 
 """
 # Note: not all options have been tested with dIm and snow17
-numerical_model = 'svs2'  # model to use from FSM2, dIm or snow17
+numerical_model = 'svs2'  # model to use from svs2, FSM2, dIm or snow17
+
 # -----------------------------------
 # Directories
 # -----------------------------------
 
+dir_exp = '/home/nil005/store6/Driving_Data/MuSA_PF/' # Floder with all the config/input files for MESH-SVS2
+tmp_path = '/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp' # Temporary path where the svs2 outputs are stored
+
 obs_file = '/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/obs/obs_Powassan_synth_weekly_noLiq.nc'
-intermediate_path = "./DATA/INTERMEDIATE/"
+intermediate_path = "./DATA/INTERMEDIATE/" # Useless for SVS2
 file_forcing = '/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/Input_MESH/basin_forcing_Powassan_2223.met'
 
-dir_exp = '/home/nil005/store6/Driving_Data/MuSA_PF/'
-save_ensemble_path = "/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/output_paper/"
-output_path = "/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/output_paper/"
+# First user should change that
+save_ensemble_path = "/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/output_PF/"
+output_path = "/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/output_PF/"
+
 name_output = 'cell_Powassan_PF_13GHz_weekly' # Default output file by MuSA (weights, ...)
 name_ensemble_output = 'ensbl_Powassan_PF_13GHz_weekly' # Full ensemble output
-name_vert_profiles_output = 'out_snow_vert_Powassan_PF_13GHz_weekly' # Full ensemble output
-tmp_path = '/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp' # Temporary path where the temporary svs2 outputs are stored
+name_vert_profiles_output = 'out_snow_vert_Powassan_PF_13GHz_weekly' # Full ensemble output, only when 'ensemble_OL' is used
+
 
 mesh_exe = '/home/nil005/ords/Codes/MESH_SVS/MESH_SVS_workMuSA/sa_mesh'
 
@@ -77,7 +82,7 @@ AR_noise = 'magnusson'
 
 
 # var_to_assim from "snd", "SWE", "Tsrf", 'sigma' from the output file from SVS2
-var_to_assim = ['sigma_13GHz']
+var_to_assim = ['sigma_13GHz'] # This variable should be in the obs file
 obs_error_var_names = ['sdError']  # In case of r_cov = 'dynamic_error'
 
 # DA second order variables and/or statistics (experimental)

@@ -144,7 +144,7 @@ def model_forcing_wrt(forcing_df, step=0):
 def configure_MESH_parameter(step, dump):
 
     if step == 0: # Initial run
-        os.system('cp '+cfg.dir_exp+'/exp_cfg/param_file/MESH_parameters_stop.txt '+cfg.tmp_path+'/MESH_parameters.txt')
+        os.system('cp '+cfg.dir_exp+'/exp_cfg/param_file/MESH_parameters_ini.txt '+cfg.tmp_path+'/MESH_parameters.txt')
     else:
 
         os.system('cp '+cfg.dir_exp+'exp_cfg/param_file/MESH_parameters_restart.txt '+cfg.tmp_path+'/MESH_parameters.txt')
