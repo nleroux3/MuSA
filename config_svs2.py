@@ -66,9 +66,9 @@ burn_in = 0.1      # discard the first x proportion of samples
 # and time. If this option is selected, the errors will be stored in a new
 # variable in the observation files, and will have the same dimensions as
 # the observations.
-lr_cov_perc = False # If True, 1 should be in percentage [0-100]
+lr_cov_perc = False # If True, r_cov should be in percentage [0-100]
 r_cov = [1]
-add_dynamic_noise = True
+add_dynamic_noise = False
 
 #mark as true to perturb forcing with different noise every hour, otherwise keep the same noise for the whole assimilation time step (default in MuSA)
 lperturb_hourly = True
