@@ -63,7 +63,7 @@ def model_run(mbr=-1):
 
 def concat_netcdf_ensemble_outputs(lat_idx, lon_idx):
     # Concat all the vertical profiles at observation times
-    var_drop = ['SNOMA','SNODP','SNODEN','SNOALB','WSNO','TSNO_SURF','RSNOW_AC','RAINRATE','SNOWRATE','ISOIL','TPSOIL','WSOIL','TPSOILV']
+    var_drop = ['SNOALB','RSNOW_AC','RAINRATE','SNOWRATE','TPSOILV']
 
     ens_list = []
     for num in range(cfg.ensemble_members):
