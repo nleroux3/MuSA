@@ -64,6 +64,10 @@ def run_SMRT(snow_df, soil_df, freq, clay_perc, rhosoil, mss):
                                   #Note: if using constant values, clay_perc, rhosoil is no longer needed. soil_df is still needed for soil 
                                   #temperature below.
 
+        #eps = complex(18.72,6.24) #This is the mean permittivity value measured at Powassan March 1 and 2, 2023 (Personnal communication with Alex
+                                   #Gélinas at UQTR). Min value (most likely frozen soils) complex(2.31,0.09). Max value (most likely wet thawed 
+                                   #soil under or close to forest canopy) complex(44.76,15.42)
+
         sub = make_soil('geometrical_optics_backscatter', 
                         permittivity_model = eps, 
                         mean_square_slope=mss, 
