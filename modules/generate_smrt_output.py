@@ -57,8 +57,12 @@ def run_SMRT(snow_df, soil_df, freq, clay_perc, rhosoil, mss):
         return np.nan
     else:
         # Calculate soil permittivity
-        e_r, e_i = mironov_model(soil_df['TPSOIL'].iloc[0]-273.15, clay_perc, soil_df['WSOIL'].iloc[0], rhosoil)
-        eps = complex(e_r, e_i)
+        #e_r, e_i = mironov_model(soil_df['TPSOIL'].iloc[0]-273.15, clay_perc, soil_df['WSOIL'].iloc[0], rhosoil)
+        #eps = complex(e_r, e_i)
+        eps = complex(2.77, 0.75) #"FROZEN soil" values extracted from Montpetit et al. (2024) (https://doi.org/10.5194/tc-18-3857-2024). Frozen 
+                                  #soils seems to behave the same as dry sand no matter the soil composition.
+                                  #Note: if using constant values, clay_perc, rhosoil is no longer needed. soil_df is still needed for soil 
+                                  #temperature below.
 
         sub = make_soil('geometrical_optics_backscatter', 
                         permittivity_model = eps, 
