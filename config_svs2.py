@@ -34,9 +34,9 @@ mesh_exe = '/home/nil005/ords/Codes/MESH_SVS/MESH_SVS_workMuSA/sa_mesh'
 radar_equivalent_snow = False
 
 # If restart_run is enabled, the outputs will not be overwritten
-restart_run = False
+restart_run = False # Keep at False for SVS2
 # If restart_forcing, the forcing will be read from intermediate files
-restart_forcing = False
+restart_forcing = False # Keep at False for SVS2
 
 # -----------------------------------
 # Data Assim
@@ -77,7 +77,6 @@ lperturb_hourly = True
 # Three options are giving:
 #      "none" (no using time autocorrelation in noise)
 #      "magnusson" (Magnusson et al., 2017)
-#      "charrois" (Charrois et al., 2016)
 AR_noise = 'magnusson'
 
 

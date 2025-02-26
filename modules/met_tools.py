@@ -185,27 +185,6 @@ def create_noise(perturbation_strategy, n_steps, mean, std_dev, var):
                 noise = np.exp(q * std_dev  + mean   ) 
 
 
-        elif cfg.AR_noise == 'charrois':
-
-            dt_model = 60. * 60. # 60 min forcing  dt in s
-            phi = np.exp(-dt_model / (cnt.tau[var] * 3600.))
-
-            noise = np.zeros(n_steps) + np.nan
-
-            noise[0] = np.random.normal(0, std_dev, 1)
-
-            variance_epsilon =  std_dev**2*(1.-phi**2)
-
-            epsilon = np.random.normal(0, np.sqrt(variance_epsilon), n_steps)
-
-
-            for i in range(1,n_steps):
-                noise[i] = noise[i-1] * phi + epsilon[i]
-
-            if perturbation_strategy == "lognormal":
-                noise = noise + 1. 
-
-
 
         else:
             print("ATTENTION: AR_noise is not within the options")
