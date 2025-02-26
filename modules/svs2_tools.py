@@ -63,7 +63,7 @@ def model_run(mbr=-1):
 
 def concat_netcdf_ensemble_outputs(lat_idx, lon_idx):
     # Concat all the vertical profiles at observation times
-    var_drop = ['SNOALB','RSNOW_AC','RAINRATE','SNOWRATE','TPSOILV']
+    var_drop = ['SNOALB','RSNOW_AC','RAINRATE','SNOWRATE','TPSOILV', 'RSNV_AC', 'SNVMA', 'SNVDP', 'SNVDEN', 'SNVALB', 'WSNV', 'TSNV_SURF', 'RSNV_AC', 'RAINRATE_VGH', 'SNOWRATE_VGH', 'SNOWRATE_VGH', 'SNOAGEV_ML', 'SNODOPTV_ML', 'SNODOPTV_ML', 'SNOTYPEV_ML', 'SNOTYPEV_ML', 'SNOHISTV_ML', 'SNODENV_ML', 'SNOMAV_ML', 'WSNOWV_ML', 'SCF_LV', 'SCF_LV', 'WVEGL', 'TGROUNDV', 'TVEGH', 'TVEGL', 'WVEGH']
 
     ens_list = []
     for num in range(cfg.ensemble_members):
@@ -112,7 +112,6 @@ def model_read_output(read_dump=True):
     smrt_out = xr.open_dataset(os.path.join(cfg.tmp_path,'output','out_smrt.nc')).to_dataframe()
     state = pd.concat([state, smrt_out], axis = 1)
     
-    pdb.set_trace()
     state = state[model_columns]
 
     if read_dump:
@@ -274,7 +273,6 @@ def store_sim(updated_Sim, sd_Sim, Ensemble,
         average_sim = d1.mean
         sd_sim = d1.std
 
-        # pdb.set_trace()
         updated_Sim.loc[rowIndex, name_col] = average_sim
         sd_Sim.loc[rowIndex, name_col] = sd_sim
 
