@@ -35,7 +35,7 @@ if cfg.DAsord:
 # TODO: homogenize documentation format
 
 forcing_columns = ['HOUR', 'MINS', 'JDAY', 'YEAR', 'FSIN', 'FLIN', 'PRE', 'TA', 'QA', 'UV', 'PRES', 'PRERN', 'PRESNO']
-model_columns = ["year", "month", "day", "hour", "sd", "swe", "Ts", "alb","sigma_13GHz","sigma_17GHz",'sigma_5p4GHz','sigma_diff_13_17','sigma_diff_13_5p4','sigma_diff_17_5p4']
+model_columns = ["year", "month", "day", "hour", "sd", "swe", "Ts", "alb","sigma_13GHz","sigma_17GHz",'sigma_diff_13_17']
 
 
 def W19(Ta, QA, Pres):
@@ -111,7 +111,8 @@ def model_read_output(read_dump=True):
 
     smrt_out = xr.open_dataset(os.path.join(cfg.tmp_path,'output','out_smrt.nc')).to_dataframe()
     state = pd.concat([state, smrt_out], axis = 1)
-
+    
+    pdb.set_trace()
     state = state[model_columns]
 
     if read_dump:

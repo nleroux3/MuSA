@@ -179,7 +179,6 @@ def generate_smrt_output():
     if cfg.radar_equivalent_snow:
         snow_t_13GHz = [three_layer_k(df_snow.loc[date], method = 'thick-ke-density', freq = 13e9) for date in times]
         snow_t_17GHz = [three_layer_k(df_snow.loc[date], method = 'thick-ke-density', freq = 17e9) for date in times]
-        snow_t_5p4GHz = [three_layer_k(df_snow.loc[date], method = 'thick-ke-density', freq = 5.4e9) for date in times]
     else:
         snow_t_list = []
         for tt in times: 
@@ -188,17 +187,13 @@ def generate_smrt_output():
             snow_t_list.append(snow_t)
         snow_t_13GHz = snow_t_list.copy()
         snow_t_17GHz = snow_t_list.copy()
-        snow_t_5p4GHz = snow_t_list.copy()
 
 
     # Get backscatter from SMRT from the times when we have snow profile outputs
     sigma_13GHz = []
     sigma_17GHz = []
-    sigma_5p4GHz = []
     time_sigma = []
     sigma_diff_13_17 = []
-    sigma_diff_13_5p4 = []
-    sigma_diff_17_5p4 = []
 
 
     soil_t_list = []
@@ -211,9 +206,8 @@ def generate_smrt_output():
 
     input_list_13GHz = [(snow_t_13GHz[i], soil_t_list[i], 13e9, clay_perc[0], rhosoil[0], mss) for i in range(len(time_list))]
     input_list_17GHz = [(snow_t_17GHz[i], soil_t_list[i], 17e9, clay_perc[0], rhosoil[0], mss) for i in range(len(time_list))]
-    input_list_5p4GHz = [(snow_t_5p4GHz[i], soil_t_list[i], 5.4e9, clay_perc[0], rhosoil[0], mss) for i in range(len(time_list))]
 
-    input_list = input_list_13GHz + input_list_17GHz + input_list_5p4GHz
+    input_list = input_list_13GHz + input_list_17GHz 
 
     #run the model
     with ProcessPoolExecutor() as executor :
@@ -229,26 +223,20 @@ def generate_smrt_output():
         results[index] = future.result()
 
 
-    result_13GHz = results[:int(len(input_list)/3)]
-    result_17GHz = results[int(len(input_list)/3):int(2*len(input_list)/3)]
-    result_5p4GHz = results[int(2*len(input_list)/3):]
+    result_13GHz = results[:int(len(input_list)/2)]
+    result_17GHz = results[int(len(input_list)/2):]
 
     sigma_13GHz = [to_dB(a) for a in result_13GHz]
     sigma_17GHz = [to_dB(a) for a in result_17GHz]
-    sigma_5p4GHz = [to_dB(a) for a in result_5p4GHz]
     sigma_diff_13_17 = [a - b for (a, b) in zip(result_13GHz, result_17GHz)]
-    sigma_diff_13_5p4 = [a - b for (a, b) in zip(result_13GHz, result_5p4GHz)]
-    sigma_diff_17_5p4 = [a - b for (a, b) in zip(result_17GHz, result_5p4GHz)]
+
 
                              
     smrt = pd.DataFrame()
     smrt['time'] = time_list
     smrt['sigma_13GHz'] = sigma_13GHz
     smrt['sigma_17GHz'] = sigma_17GHz
-    smrt['sigma_5p4GHz'] = sigma_5p4GHz
     smrt['sigma_diff_13_17'] = sigma_diff_13_17
-    smrt['sigma_diff_13_5p4'] = sigma_diff_13_5p4
-    smrt['sigma_diff_17_5p4'] = sigma_diff_17_5p4
     smrt = smrt.replace(np.nan, -9999.)
     smrt = smrt.set_index('time')
 
