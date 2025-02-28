@@ -112,7 +112,7 @@ def cell_assimilation(lat_idx, lon_idx):
         if cfg.numerical_model == 'svs2':
             model.configure_options_ini_parameter(step, time_dict)
 
-
+        print('step = ', step)
         Ensemble.create(forcing_sbst, observations_sbst, error_sbst, step)
 
         # store prior ensemble

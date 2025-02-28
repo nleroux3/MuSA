@@ -93,7 +93,7 @@ def concat_netcdf_ensemble_outputs(lat_idx, lon_idx):
 
 
 
-def model_read_output(read_dump=True):
+def model_read_output():
     mod = xr.open_dataset(os.path.join(cfg.tmp_path,'output','out_svs2.nc'))
 
     swe = mod['SNOMA'].to_dataframe('swe')
@@ -114,11 +114,10 @@ def model_read_output(read_dump=True):
     
     state = state[model_columns]
 
-    if read_dump:
-        dump = pd.read_csv(os.path.join(cfg.tmp_path, 'output/restart_svs2.csv'), header = None,delimiter=r"\s+", names = range(50))
-        return state, dump
-    else:
-       return state
+    dump = pd.read_csv(os.path.join(cfg.tmp_path, 'output/restart_svs2.csv'), header = None,delimiter=r"\s+", names = range(50))
+    
+    return state, dump
+
 
 
 def get_var_state_position(var):

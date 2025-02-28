@@ -210,18 +210,10 @@ def generate_smrt_output():
     input_list = input_list_13GHz + input_list_17GHz 
 
     #run the model
-    with ProcessPoolExecutor() as executor :
-        # Submit the tasks to the executor
-        futures = {executor.submit(run_SMRT, *args): i for i, args in enumerate(input_list)}
-
-    # Initialize a list to store results in the correct order
-    results = [None] * len(input_list)
-
-    # Process the results as they complete
-    for future in as_completed(futures):
-        index = futures[future]
-        results[index] = future.result()
-
+    results = []
+    for args in input_list:
+        results.append(run_SMRT(*args))
+    
 
     result_13GHz = results[:int(len(input_list)/2)]
     result_17GHz = results[int(len(input_list)/2):]

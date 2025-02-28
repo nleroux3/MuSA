@@ -128,5 +128,8 @@ def generate_nc_output():
     # Write netcdf
     encoding = generate_encodings(ref)
     netcdf_file_out = 'out_'+lss+'.nc'
-    ref.to_netcdf(os.path.join(cfg.tmp_path,'output',netcdf_file_out))
+    netcdf_path = os.path.join(cfg.tmp_path,'output',netcdf_file_out)
+    if os.path.exists(netcdf_path):
+        os.remove(netcdf_path)  # Remove existing file before writing
+    ref.to_netcdf(netcdf_path)
 

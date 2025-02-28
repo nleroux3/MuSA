@@ -23,21 +23,22 @@ file_forcing = '/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/Input_MESH/ba
 save_ensemble_path = "/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/output_PF/"
 output_path = "/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/output_PF/"
 
-name_output = 'cell_Powassan_PF_13GHz_weekly' # Default output file by MuSA (weights, ...)
-name_ensemble_output = 'ensbl_Powassan_PF_13GHz_weekly' # Full ensemble output
-name_vert_profiles_output = 'out_snow_vert_Powassan_PF_13GHz_weekly' # Full ensemble output, only when 'ensemble_OL' is used
+name_output = 'cell_Powassan_PF_13GHz_weekly_RES' # Default output file by MuSA (weights, ...)
+name_ensemble_output = 'ensbl_Powassan_PF_13GHz_weekly_RES' # Full ensemble output
+name_vert_profiles_output = 'out_snow_vert_Powassan_PF_13GHz_weekly_RES' # Full ensemble output, only when 'ensemble_OL' is used
 
 
 mesh_exe = '/home/nil005/ords/Codes/MESH_SVS/MESH_SVS_workMuSA/sa_mesh'
 
 # Use J.Meloche radar_equivalent_snow code to simplify the snowpack into 3 layers before runing SMRT
-radar_equivalent_snow = False
+radar_equivalent_snow = True
 
 # If restart_run is enabled, the outputs will not be overwritten
 restart_run = False # Keep at False for SVS2
 # If restart_forcing, the forcing will be read from intermediate files
 restart_forcing = False # Keep at False for SVS2
 
+parallelization_mbrs = False
 # -----------------------------------
 # Data Assim
 # -----------------------------------

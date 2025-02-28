@@ -120,7 +120,7 @@ class SnowEnsemble():
 
         elif cfg.numerical_model in ['svs2']:
 
-            # Reconfigure the MESH parameter with initial snow condictions from previous time step
+            # Reconfigure the MESH parameter with initial snow conditions from previous time step
             if step != 0:
                 model.configure_MESH_parameter(self.step, self.origin_dump[step - 1])
             else:
@@ -148,7 +148,7 @@ class SnowEnsemble():
         # Ensemble generator
         # TODO: Parallelize this loop
         for mbr in range(self.members):
-
+            print('mbr = ', mbr)
             if step == 0 or readGSC:
                 if readGSC:
 
@@ -178,7 +178,9 @@ class SnowEnsemble():
                             met.perturb_parameters(forcing_sbst,
                                                    noise=noise_tmp,
                                                    update=True)
-                    elif (cfg.redraw_scratch):
+                    elif (cfg.redraw_scratch): 
+                        # New with SVS2, redraw the noise but different way from initial MuSA redraw code
+                        # TODO: Can it be combined with initial MuSA redraw code
                         member_forcing, noise_tmp = \
                             met.perturb_parameters(forcing_sbst)
 
@@ -252,7 +254,7 @@ class SnowEnsemble():
                     model.configure_MESH_parameter(self.step, np.empty(0))
 
                 model.model_run(mbr)
-                # read model outputs, dump is a df containing the initial conditions for next step
+                # read model outputs, dump is a df containing the initial conditions/prognostic variables for next step
                 state_tmp, dump_tmp = model.model_read_output()
 
             else:
