@@ -89,6 +89,12 @@ class SnowEnsemble():
     def process_run_mbr(self, mbr, step, readGSC, forcing_sbst):
         print('mbr = ', mbr)
 
+        # Create a temporary folder for the run of each mbr
+        tmp_mbr_folder = tempfile.mkdtemp(dir = cfg.tmp_path)
+        # Create the output folder
+        if not os.path.exists(os.path.join(tmp_mbr_folder,'output')):
+            os.makedirs(os.path.join(tmp_mbr_folder,'output'))
+
         if step == 0 or readGSC:
             if readGSC:
 
@@ -153,7 +159,7 @@ class SnowEnsemble():
         if cfg.numerical_model in ['FSM2']:
             model.model_forcing_wrt(member_forcing, self.temp_dest, self.step)
         elif cfg.numerical_model in ['svs2']:
-            model.model_forcing_wrt(member_forcing, self.step)
+            model.model_forcing_wrt(member_forcing, tmp_mbr_folder, self.step)
 
         if cfg.numerical_model in ['FSM2']:
             if step != 0:
@@ -185,17 +191,17 @@ class SnowEnsemble():
             # Reconfigure the MESH parameter with initial snow condictions from previous time step
             if step != 0:
                 if cfg.da_algorithm in ['PBS', 'PF']:
-                    model.configure_MESH_parameter(self.step, self.out_members[mbr])
+                    model.configure_MESH_parameter(self.step, self.out_members[mbr], tmp_mbr_folder)
 
                 else:  # if kalman, write updated dump
-                    model.configure_MESH_parameter(self.step, self.out_members_iter[mbr])
+                    model.configure_MESH_parameter(self.step, self.out_members_iter[mbr], tmp_mbr_folder)
 
             else:
-                model.configure_MESH_parameter(self.step, np.empty(0))
+                model.configure_MESH_parameter(self.step, np.empty(0), tmp_mbr_folder)
 
-            model.model_run(mbr)
+            model.model_run(tmp_mbr_folder, mbr)
             # read model outputs, dump is a df containing the initial conditions/prognostic variables for next step
-            state_tmp, dump_tmp = model.model_read_output()
+            state_tmp, dump_tmp = model.model_read_output(tmp_mbr_folder)
 
         else:
             raise Exception("Numerical model not implemented")
@@ -207,6 +213,9 @@ class SnowEnsemble():
         self.out_members_ensemble[mbr] = dump_tmp.copy()
 
         self.noise[mbr] = noise_tmp.copy()
+
+        # Remove temporary folder
+        shutil.rmtree(tmp_mbr_folder)
 
     def create(self, forcing_sbst, observations_sbst, error_sbst, step,
                readGSC=False, GSC_filename=None):
@@ -245,16 +254,16 @@ class SnowEnsemble():
 
             # Reconfigure the MESH parameter with initial snow conditions from previous time step
             if step != 0:
-                model.configure_MESH_parameter(self.step, self.origin_dump[step - 1])
+                model.configure_MESH_parameter(self.step, self.origin_dump[step - 1], cfg.tmp_path)
             else:
-                model.configure_MESH_parameter(self.step, np.empty(0))
+                model.configure_MESH_parameter(self.step, np.empty(0), cfg.tmp_path)
 
             # Modify and write forcing with perturbation
-            model.model_forcing_wrt(forcing_sbst, self.step)
+            model.model_forcing_wrt(forcing_sbst, cfg.tmp_path, self.step)
 
-            model.model_run()
+            model.model_run(cfg.tmp_path)
             # read model outputs, dump is a df containing the initial conditions for next step
-            origin_state_tmp, origin_dump_tmp = model.model_read_output()
+            origin_state_tmp, origin_dump_tmp = model.model_read_output(cfg.tmp_path)
 
         else:
             raise Exception("Numerical model not implemented")
@@ -291,9 +300,6 @@ class SnowEnsemble():
 
         if create:  # If there is observational data update the ensemble
 
-            # create temporal model dir
-            if cfg.numerical_model != 'svs2':
-                self.temp_dest = model.model_copy(self.lat_idx, self.lon_idx)
 
             # Ensemble generator
             for mbr in range(self.members):
@@ -327,21 +333,6 @@ class SnowEnsemble():
                         state_tmp, dump_tmp =\
                             model.model_run(member_forcing)
 
-                elif cfg.numerical_model in ['svs2']:
-
-                    # Modify and write forcing with perturbation
-                    model.model_forcing_wrt(member_forcing, self.step)
-
-                    # Reconfigure the MESH parameter with initial snow condictions from previous time step
-                    if step != 0:
-                        model.configure_MESH_parameter(self.step, self.out_members_iter[mbr])
-                    else:
-                        model.configure_MESH_parameter(self.step, np.empty(0))
-
-                    model.model_run()
-
-                    # read model outputs, dump is a df containing the initial conditions for next step
-                    state_tmp, dump_tmp = model.model_read_output()
 
 
                 self.state_membres[mbr] = state_tmp.copy()

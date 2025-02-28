@@ -20,14 +20,14 @@ def generate_encodings(data):
     return encoding
 
 
-def generate_nc_output():
+def generate_nc_output(tmp_mbr_folder):
     # Land surface scheme : select among svs1 and svs2
     lss = 'svs2'
 
     # Go to exp directory
 
     # Get list of files containing SVS outputs
-    list_fic = glob.glob(os.path.join(cfg.tmp_path,'output',lss+'*.csv'))
+    list_fic = glob.glob(os.path.join(tmp_mbr_folder,'output',lss+'*.csv'))
 
     for ific,fic in enumerate(list_fic):
 
@@ -128,7 +128,7 @@ def generate_nc_output():
     # Write netcdf
     encoding = generate_encodings(ref)
     netcdf_file_out = 'out_'+lss+'.nc'
-    netcdf_path = os.path.join(cfg.tmp_path,'output',netcdf_file_out)
+    netcdf_path = os.path.join(tmp_mbr_folder,'output',netcdf_file_out)
     if os.path.exists(netcdf_path):
         os.remove(netcdf_path)  # Remove existing file before writing
     ref.to_netcdf(netcdf_path)

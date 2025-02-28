@@ -8,7 +8,6 @@ Author: Nicolas R. Leroux - nicolas.leroux@ec.g.ca
 import os, pdb
 import shutil, glob
 import subprocess
-import tempfile
 import datetime as dt
 import pandas as pd
 import config as cfg
@@ -49,16 +48,16 @@ def W19(Ta, QA, Pres):
 
     return fr
 
-def model_run(mbr=-1):
+def model_run(tmp_mbr_folder, mbr=-1):
 
     current_dir = os.getcwd()
-    os.chdir(cfg.tmp_path)
+    os.chdir(tmp_mbr_folder)
     os.system(cfg.mesh_exe)
     os.chdir(current_dir)
-    generate_nc_output()
-    generate_smrt_output()
+    generate_nc_output(tmp_mbr_folder)
+    generate_smrt_output(tmp_mbr_folder)
     if ((cfg.da_algorithm == "ensemble_OL") & (mbr >= 0)):
-        shutil.copyfile(os.path.join(cfg.tmp_path,'output','out_svs2.nc'), os.path.join(cfg.tmp_path,'output','out_svs2_'+str(mbr)+'.nc'))
+        shutil.copyfile(os.path.join(tmp_mbr_folder,'output','out_svs2.nc'), os.path.join(cfg.tmp_path,'output','out_svs2_'+str(mbr)+'.nc'))
 
 
 def concat_netcdf_ensemble_outputs(lat_idx, lon_idx):
@@ -93,8 +92,8 @@ def concat_netcdf_ensemble_outputs(lat_idx, lon_idx):
 
 
 
-def model_read_output():
-    mod = xr.open_dataset(os.path.join(cfg.tmp_path,'output','out_svs2.nc'))
+def model_read_output(tmp_folder):
+    mod = xr.open_dataset(os.path.join(tmp_folder,'output','out_svs2.nc'))
 
     swe = mod['SNOMA'].to_dataframe('swe')
     sd = mod['SNODP'].to_dataframe('snd')
@@ -109,13 +108,13 @@ def model_read_output():
     state['day'] = state.index.day
     state['hour'] = state.index.hour
 
-    smrt_out = xr.open_dataset(os.path.join(cfg.tmp_path,'output','out_smrt.nc')).to_dataframe()
+    smrt_out = xr.open_dataset(os.path.join(tmp_folder,'output','out_smrt.nc')).to_dataframe()
     state = pd.concat([state, smrt_out], axis = 1)
-    
+
     state = state[model_columns]
 
-    dump = pd.read_csv(os.path.join(cfg.tmp_path, 'output/restart_svs2.csv'), header = None,delimiter=r"\s+", names = range(50))
-    
+    dump = pd.read_csv(os.path.join(tmp_folder, 'output/restart_svs2.csv'), header = None,delimiter=r"\s+", names = range(50))
+
     return state, dump
 
 
@@ -127,7 +126,7 @@ def get_var_state_position(var):
     return state_columns.index(var)
 
 
-def model_forcing_wrt(forcing_df, step=0):
+def model_forcing_wrt(forcing_df, tmp_folder, step=0):
 
     met_forcing_temp = forcing_df.copy()
 
@@ -138,16 +137,24 @@ def model_forcing_wrt(forcing_df, step=0):
     PRERN = PRE * frac_liq
     met_forcing_temp['PRESNO'] = PRESNO
     met_forcing_temp['PRERN'] = PRERN
-    met_forcing_temp.to_csv(os.path.join(cfg.tmp_path,'basin_forcing.met'), sep = ' ', index = False, header = False)
+    met_forcing_temp.to_csv(os.path.join(tmp_folder,'basin_forcing.met'), sep = ' ', index = False, header = False)
 
-def configure_MESH_parameter(step, dump):
+def configure_MESH_parameter(step, dump, tmp_folder):
 
+    # Manage the MESH_parameters file. If restart is used, copy the initial conditions for the prognostic variables
     if step == 0: # Initial run
-        os.system('cp '+cfg.dir_exp+'/exp_cfg/param_file/MESH_parameters_ini.txt '+cfg.tmp_path+'/MESH_parameters.txt')
+        os.system('cp '+cfg.dir_exp+'/exp_cfg/param_file/MESH_parameters_ini.txt '+tmp_folder+'/MESH_parameters.txt')
     else:
 
-        os.system('cp '+cfg.dir_exp+'exp_cfg/param_file/MESH_parameters_restart.txt '+cfg.tmp_path+'/MESH_parameters.txt')
-        dump.to_csv(os.path.join(cfg.tmp_path,'MESH_parameters.txt'), mode = 'a', index = False, header=False, sep = '\t')
+        os.system('cp '+cfg.dir_exp+'exp_cfg/param_file/MESH_parameters_restart.txt '+tmp_folder+'/MESH_parameters.txt')
+        dump.to_csv(os.path.join(tmp_folder,'MESH_parameters.txt'), mode = 'a', index = False, header=False, sep = '\t')
+
+    # Copy the MESH_input_soil_levels and MESH_input_run_options files into the tmp mbr folder
+    if not os.path.isfile(os.path.join(tmp_folder,'MESH_input_run_options.ini')):
+        shutil.copy(os.path.join(cfg.tmp_path,'MESH_input_run_options.ini'), os.path.join(tmp_folder,'MESH_input_run_options.ini'))
+    if not os.path.isfile(os.path.join(tmp_folder,'MESH_input_soil_levels.txt')):
+        shutil.copy(os.path.join(cfg.tmp_path,'MESH_input_soil_levels.txt'), os.path.join(tmp_folder,'MESH_input_soil_levels.txt'))
+
 
 def configure_options_ini_parameter(step, time_dict):
 
