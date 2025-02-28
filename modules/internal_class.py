@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import os, pdb
 import shutil
+import tempfile
 if cfg.numerical_model == 'FSM2':
     import modules.fsm_tools as model
 elif cfg.numerical_model == 'dIm':
@@ -85,6 +86,128 @@ class SnowEnsemble():
 
         self.train_pred[kalman_iter] = predictions.copy()
 
+    def process_run_mbr(self, mbr, step, readGSC, forcing_sbst):
+        print('mbr = ', mbr)
+
+        if step == 0 or readGSC:
+            if readGSC:
+
+                GSC_path = os.path.join(
+                    cfg.spatial_propagation_storage_path,
+                    GSC_filename)
+
+                member_forcing, noise_tmp = \
+                    met.perturb_parameters(forcing_sbst,
+                                            lat_idx=self.lat_idx,
+                                            lon_idx=self.lon_idx,
+                                            member=mbr, readGSC=True,
+                                            GSC_filename=GSC_path)
+            else:
+                member_forcing, noise_tmp = \
+                    met.perturb_parameters(forcing_sbst)
+
+
+        else:
+            # if PBS/PF is used, use the noise
+            # of the previous assimilation step or redraw.
+            if cfg.da_algorithm in ["PF", "PBS"]:
+                if (cfg.redraw_prior):
+                    # if redraw, generate new perturbations
+                    noise_tmp = met.redraw(self.func_shape_arr)
+                    member_forcing, noise_tmp = \
+                        met.perturb_parameters(forcing_sbst,
+                                                noise=noise_tmp,
+                                                update=True)
+                elif (cfg.redraw_scratch):
+                    # New with SVS2, redraw the noise but different way from initial MuSA redraw code
+                    # TODO: Can it be combined with initial MuSA redraw code
+                    member_forcing, noise_tmp = \
+                        met.perturb_parameters(forcing_sbst)
+
+                else:
+                    # Use the posterior parameters
+                    noise_tmp = list(self.noise[mbr].values())
+                    noise_tmp = np.vstack(noise_tmp)
+                    # Take last perturbation values
+                    noise_tmp = noise_tmp[:, np.shape(noise_tmp)[1] - 1]
+                    member_forcing, noise_tmp = \
+                        met.perturb_parameters(forcing_sbst,
+                                                noise=noise_tmp,
+                                                update=True)
+            else:
+                if (cfg.redraw_scratch):
+                    member_forcing, noise_tmp = \
+                        met.perturb_parameters(forcing_sbst)
+                else:
+                    # if kalman is used, use the posterior noise of the
+                    # previous run
+                    noise_tmp = list(self.noise_iter[mbr].values())
+                    noise_tmp = np.vstack(noise_tmp)
+                    # Take last perturbation values
+                    noise_tmp = noise_tmp[:, np.shape(noise_tmp)[1] - 1]
+                    member_forcing, noise_tmp = \
+                        met.perturb_parameters(forcing_sbst,
+                                                noise=noise_tmp, update=True)
+
+        # write perturbed forcing
+        if cfg.numerical_model in ['FSM2']:
+            model.model_forcing_wrt(member_forcing, self.temp_dest, self.step)
+        elif cfg.numerical_model in ['svs2']:
+            model.model_forcing_wrt(member_forcing, self.step)
+
+        if cfg.numerical_model in ['FSM2']:
+            if step != 0:
+                if cfg.da_algorithm in ['PBS', 'PF']:
+                    model.write_dump(self.out_members[mbr], self.temp_dest)
+                else:  # if kalman, write updated dump
+                    model.write_dump(self.out_members_iter[mbr],
+                                        self.temp_dest)
+
+            model.model_run(self.temp_dest)
+
+            state_tmp, dump_tmp = model.model_read_output(self.temp_dest)
+
+        elif cfg.numerical_model in ['dIm', 'snow17']:
+            if step != 0:
+                if cfg.da_algorithm in ['PBS', 'PF']:
+                    state_tmp, dump_tmp =\
+                        model.model_run(member_forcing,
+                                        self.out_members[mbr])
+                else:  # if kalman, write updated dump
+                    state_tmp, dump_tmp =\
+                        model.model_run(member_forcing,
+                                        self.out_members_iter[mbr])
+            else:
+                state_tmp, dump_tmp =\
+                    model.model_run(member_forcing)
+        elif cfg.numerical_model in ['svs2']:
+
+            # Reconfigure the MESH parameter with initial snow condictions from previous time step
+            if step != 0:
+                if cfg.da_algorithm in ['PBS', 'PF']:
+                    model.configure_MESH_parameter(self.step, self.out_members[mbr])
+
+                else:  # if kalman, write updated dump
+                    model.configure_MESH_parameter(self.step, self.out_members_iter[mbr])
+
+            else:
+                model.configure_MESH_parameter(self.step, np.empty(0))
+
+            model.model_run(mbr)
+            # read model outputs, dump is a df containing the initial conditions/prognostic variables for next step
+            state_tmp, dump_tmp = model.model_read_output()
+
+        else:
+            raise Exception("Numerical model not implemented")
+
+        # store model outputs and perturbation parameters
+        self.state_membres[mbr] = state_tmp.copy()
+
+        self.out_members[mbr] = dump_tmp.copy()
+        self.out_members_ensemble[mbr] = dump_tmp.copy()
+
+        self.noise[mbr] = noise_tmp.copy()
+
     def create(self, forcing_sbst, observations_sbst, error_sbst, step,
                readGSC=False, GSC_filename=None):
 
@@ -148,125 +271,7 @@ class SnowEnsemble():
         # Ensemble generator
         # TODO: Parallelize this loop
         for mbr in range(self.members):
-            print('mbr = ', mbr)
-            if step == 0 or readGSC:
-                if readGSC:
-
-                    GSC_path = os.path.join(
-                        cfg.spatial_propagation_storage_path,
-                        GSC_filename)
-
-                    member_forcing, noise_tmp = \
-                        met.perturb_parameters(forcing_sbst,
-                                               lat_idx=self.lat_idx,
-                                               lon_idx=self.lon_idx,
-                                               member=mbr, readGSC=True,
-                                               GSC_filename=GSC_path)
-                else:
-                    member_forcing, noise_tmp = \
-                        met.perturb_parameters(forcing_sbst)
-
-
-            else:
-                # if PBS/PF is used, use the noise
-                # of the previous assimilation step or redraw.
-                if cfg.da_algorithm in ["PF", "PBS"]:
-                    if (cfg.redraw_prior):
-                        # if redraw, generate new perturbations
-                        noise_tmp = met.redraw(self.func_shape_arr)
-                        member_forcing, noise_tmp = \
-                            met.perturb_parameters(forcing_sbst,
-                                                   noise=noise_tmp,
-                                                   update=True)
-                    elif (cfg.redraw_scratch): 
-                        # New with SVS2, redraw the noise but different way from initial MuSA redraw code
-                        # TODO: Can it be combined with initial MuSA redraw code
-                        member_forcing, noise_tmp = \
-                            met.perturb_parameters(forcing_sbst)
-
-                    else:
-                        # Use the posterior parameters
-                        noise_tmp = list(self.noise[mbr].values())
-                        noise_tmp = np.vstack(noise_tmp)
-                        # Take last perturbation values
-                        noise_tmp = noise_tmp[:, np.shape(noise_tmp)[1] - 1]
-                        member_forcing, noise_tmp = \
-                            met.perturb_parameters(forcing_sbst,
-                                                   noise=noise_tmp,
-                                                   update=True)
-                else:
-                    if (cfg.redraw_scratch):
-                        member_forcing, noise_tmp = \
-                            met.perturb_parameters(forcing_sbst)
-                    else:
-                        # if kalman is used, use the posterior noise of the
-                        # previous run
-                        noise_tmp = list(self.noise_iter[mbr].values())
-                        noise_tmp = np.vstack(noise_tmp)
-                        # Take last perturbation values
-                        noise_tmp = noise_tmp[:, np.shape(noise_tmp)[1] - 1]
-                        member_forcing, noise_tmp = \
-                            met.perturb_parameters(forcing_sbst,
-                                                   noise=noise_tmp, update=True)
-
-            # write perturbed forcing
-            if cfg.numerical_model in ['FSM2']:
-                model.model_forcing_wrt(member_forcing, self.temp_dest, self.step)
-            elif cfg.numerical_model in ['svs2']:
-                model.model_forcing_wrt(member_forcing, self.step)
-
-            if cfg.numerical_model in ['FSM2']:
-                if step != 0:
-                    if cfg.da_algorithm in ['PBS', 'PF']:
-                        model.write_dump(self.out_members[mbr], self.temp_dest)
-                    else:  # if kalman, write updated dump
-                        model.write_dump(self.out_members_iter[mbr],
-                                         self.temp_dest)
-
-                model.model_run(self.temp_dest)
-
-                state_tmp, dump_tmp = model.model_read_output(self.temp_dest)
-
-            elif cfg.numerical_model in ['dIm', 'snow17']:
-                if step != 0:
-                    if cfg.da_algorithm in ['PBS', 'PF']:
-                        state_tmp, dump_tmp =\
-                            model.model_run(member_forcing,
-                                            self.out_members[mbr])
-                    else:  # if kalman, write updated dump
-                        state_tmp, dump_tmp =\
-                            model.model_run(member_forcing,
-                                            self.out_members_iter[mbr])
-                else:
-                    state_tmp, dump_tmp =\
-                        model.model_run(member_forcing)
-            elif cfg.numerical_model in ['svs2']:
-
-                # Reconfigure the MESH parameter with initial snow condictions from previous time step
-                if step != 0:
-                    if cfg.da_algorithm in ['PBS', 'PF']:
-                        model.configure_MESH_parameter(self.step, self.out_members[mbr])
-
-                    else:  # if kalman, write updated dump
-                        model.configure_MESH_parameter(self.step, self.out_members_iter[mbr])
-
-                else:
-                    model.configure_MESH_parameter(self.step, np.empty(0))
-
-                model.model_run(mbr)
-                # read model outputs, dump is a df containing the initial conditions/prognostic variables for next step
-                state_tmp, dump_tmp = model.model_read_output()
-
-            else:
-                raise Exception("Numerical model not implemented")
-
-            # store model outputs and perturbation parameters
-            self.state_membres[mbr] = state_tmp.copy()
-
-            self.out_members[mbr] = dump_tmp.copy()
-            self.out_members_ensemble[mbr] = dump_tmp.copy()
-
-            self.noise[mbr] = noise_tmp.copy()
+            self.process_run_mbr( mbr, step, readGSC, forcing_sbst)
 
         # Clean tmp directory
         try:
