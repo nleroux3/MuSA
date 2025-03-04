@@ -52,7 +52,7 @@ def model_run(tmp_mbr_folder, mbr=-1):
 
     current_dir = os.getcwd()
     os.chdir(tmp_mbr_folder)
-    os.system(cfg.mesh_exe)
+    os.system(f'{os.path.join(current_dir, "MESH_SVS2", "sa_mesh")} > log.txt')
     os.chdir(current_dir)
     generate_nc_output(tmp_mbr_folder)
     generate_smrt_output(tmp_mbr_folder)
@@ -129,7 +129,6 @@ def get_var_state_position(var):
 def model_forcing_wrt(forcing_df, tmp_folder, step=0):
 
     met_forcing_temp = forcing_df.copy()
-
 
     frac_liq = W19(met_forcing_temp['TA'].values, met_forcing_temp['QA'].values, met_forcing_temp['PRES'].values)
     PRE = met_forcing_temp['PRE'].values
@@ -249,8 +248,6 @@ def storeDA(Result_df, step_results, observations_sbst, error_sbst,
 
 
 
-
-
 def store_sim(updated_Sim, sd_Sim, Ensemble,
               time_dict, step, MCMC=False, save_prior=False):
 
@@ -273,6 +270,7 @@ def store_sim(updated_Sim, sd_Sim, Ensemble,
         # create matrix of colums
         col_arr = [list_state[x].iloc[:, n].to_numpy()
                    for x in range(len(list_state))]
+
         col_arr = np.vstack(col_arr)
 
         d1 = DescrStatsW(col_arr, weights=pesos)
@@ -319,5 +317,6 @@ def init_result(del_t, DA=False):
                                    'alb': 'float32'})
 
         return Results
+
 
 

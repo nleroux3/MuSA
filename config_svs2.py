@@ -12,7 +12,7 @@ numerical_model = 'svs2'  # model to use from svs2, FSM2, dIm or snow17
 # Directories
 # -----------------------------------
 
-dir_exp = '/home/nil005/store6/Driving_Data/MuSA_PF/' # Floder with all the config/input files for MESH-SVS2
+dir_exp = '/home/nil005/store6/Driving_Data/MuSA_PF/' # Folder with all the config/input files for MESH-SVS2
 tmp_path = '/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp' # Temporary path where the svs2 outputs are stored
 
 obs_file = '/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/obs/obs_Powassan_synth_weekly_noLiq.nc'
@@ -23,22 +23,22 @@ file_forcing = '/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/Input_MESH/ba
 save_ensemble_path = "/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/output_PF/"
 output_path = "/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/output_PF/"
 
-name_output = 'cell_Powassan_PF_13GHz_weekly_RES' # Default output file by MuSA (weights, ...)
-name_ensemble_output = 'ensbl_Powassan_PF_13GHz_weekly_RES' # Full ensemble output
-name_vert_profiles_output = 'out_snow_vert_Powassan_PF_13GHz_weekly_RES' # Full ensemble output, only when 'ensemble_OL' is used
-
-
-mesh_exe = '/home/nil005/ords/Codes/MESH_SVS/MESH_SVS_workMuSA/sa_mesh'
+name_output = 'cell_Powassan' # Default output file by MuSA (weights, ...)
+name_ensemble_output = 'ensbl_Powassan' # Full ensemble output
+name_vert_profiles_output = 'out_snow_vert_Powassan' # Full ensemble output, only when 'ensemble_OL' is used
 
 # Use J.Meloche radar_equivalent_snow code to simplify the snowpack into 3 layers before runing SMRT
-radar_equivalent_snow = True
+radar_equivalent_snow = False
+
+# To parallelize running the members or not
+parallelization_mbrs = True
 
 # If restart_run is enabled, the outputs will not be overwritten
 restart_run = False # Keep at False for SVS2
 # If restart_forcing, the forcing will be read from intermediate files
 restart_forcing = False # Keep at False for SVS2
 
-parallelization_mbrs = False
+
 # -----------------------------------
 # Data Assim
 # -----------------------------------
@@ -46,7 +46,7 @@ parallelization_mbrs = False
 # da_algorithm from PF, EnKF, IEnKF, PBS, ES, IES, deterministic_OL, ensemble_OL,
 # IES-MCMC_AI, IES-MCMC, AdaMuPBS, AdaPBS or PIES
 da_algorithm = 'PF'
-redraw_prior = False  # PF and PBS only.
+redraw_prior = False  # PF and PBS only. Not tested for SVS2
 redraw_scratch = True  # redraw using the variables from the constant file
 max_iterations = 4  # IEnKF, IES, IES-MCMC and AdaPBS
 # resampling_algorithm from "bootstrapping", residual_resample,
@@ -89,7 +89,7 @@ obs_error_var_names = ['sdError']  # In case of r_cov = 'dynamic_error'
 DAsord = False
 DAord_names = ["Ampli"]
 
-# vars_to_perturbate from "FSIN", "PRE", "TA", "RH", "UV", "PS" 
+# vars_to_perturbate from "FSIN", "PRE", "TA", "RH", "UV", "PS"
 vars_to_perturbate = ["PRE", "TA", "UV","FSIN"]
 
 #mark as true to perturb longwave with a linear regression

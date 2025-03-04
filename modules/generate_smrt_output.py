@@ -8,16 +8,11 @@ import config as cfg
 
 from modules.radar_equivalent_snow import *
 
-import sys
-sys.path.append('/fs/homeu2/eccc/mrd/ords/rpnenv/nil005/Codes/smrt')
-#from smrt.core.globalconstants import DENSITY_OF_ICE
 from smrt import sensor_list, make_model, make_snowpack, make_soil
 from smrt.emmodel.iba import derived_IBA
 from smrt.permittivity.snow_mixing_formula import wetsnow_permittivity_memls as memls
 from concurrent.futures import ProcessPoolExecutor, as_completed
-
-sys.path.append('/home/nil005/ords/Codes/mironov_soil')
-from mironov import mironov_model
+from modules.mironov import mironov_model
 
 
 DENSITY_OF_ICE = 917.

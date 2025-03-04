@@ -11,6 +11,13 @@ import pandas as pd
 import os, pdb
 import shutil
 import tempfile
+import modules.met_tools as met
+import modules.internal_fns as fns
+from modules.dask_cluster import start_cluster, close_cluster
+from dask import delayed, compute
+from dask.distributed import Client
+import multiprocessing
+
 if cfg.numerical_model == 'FSM2':
     import modules.fsm_tools as model
 elif cfg.numerical_model == 'dIm':
@@ -21,9 +28,6 @@ elif cfg.numerical_model == 'svs2':
     import modules.svs2_tools as model
 else:
     raise Exception('Model not implemented')
-import modules.met_tools as met
-import modules.internal_fns as fns
-
 
 class SnowEnsemble():
     """
@@ -87,7 +91,8 @@ class SnowEnsemble():
         self.train_pred[kalman_iter] = predictions.copy()
 
     def process_run_mbr(self, mbr, step, readGSC, forcing_sbst):
-        print('mbr = ', mbr)
+
+        print('   mbr = ', mbr)
 
         # Create a temporary folder for the run of each mbr
         tmp_mbr_folder = tempfile.mkdtemp(dir = cfg.tmp_path)
@@ -206,16 +211,10 @@ class SnowEnsemble():
         else:
             raise Exception("Numerical model not implemented")
 
-        # store model outputs and perturbation parameters
-        self.state_membres[mbr] = state_tmp.copy()
-
-        self.out_members[mbr] = dump_tmp.copy()
-        self.out_members_ensemble[mbr] = dump_tmp.copy()
-
-        self.noise[mbr] = noise_tmp.copy()
-
         # Remove temporary folder
         shutil.rmtree(tmp_mbr_folder)
+
+        return mbr, state_tmp, dump_tmp, noise_tmp
 
     def create(self, forcing_sbst, observations_sbst, error_sbst, step,
                readGSC=False, GSC_filename=None):
@@ -279,8 +278,34 @@ class SnowEnsemble():
 
         # Ensemble generator
         # TODO: Parallelize this loop
-        for mbr in range(self.members):
-            self.process_run_mbr( mbr, step, readGSC, forcing_sbst)
+        if cfg.parallelization_mbrs: # parallelization of all the mbrs
+            client = start_cluster()
+            forcing_sbst_future = client.scatter(forcing_sbst, broadcast=True)  # Broadcast DataFrame
+
+            futures = [delayed(self.process_run_mbr)(m, step, readGSC, forcing_sbst) for m in range(self.members)]
+            results = compute(*futures)
+
+        else:
+
+            results = []
+            for mbr in range(self.members):
+                results.append(self.process_run_mbr(mbr, step, readGSC, forcing_sbst))
+
+        for r in results:
+            mbr = r[0]
+            state_tmp = r[1]
+            dump_tmp = r[2]
+            noise_tmp = r[3]
+
+            # store model outputs and perturbation parameters
+            self.state_membres[mbr] = state_tmp.copy()
+
+            self.out_members[mbr] = dump_tmp.copy()
+            self.out_members_ensemble[mbr] = dump_tmp.copy()
+
+            self.noise[mbr] = noise_tmp.copy()
+
+        close_cluster()  # Ensure any existing cluster is closed
 
         # Clean tmp directory
         try:
@@ -359,21 +384,17 @@ class SnowEnsemble():
     def resample(self, resampled_particles, do_res=True):
 
         # Particles
-        new_out = [self.out_members[x].copy() for x in resampled_particles]
-        self.out_members = new_out.copy()
+        self.out_members = [self.out_members[x].copy() for x in resampled_particles]
 
         # Noise
-        new_out = [self.noise[x].copy() for x in resampled_particles]
-        self.noise = new_out.copy()
+        self.noise = [self.noise[x].copy() for x in resampled_particles]
 
         if cfg.da_algorithm in ['PIES', 'AdaPBS'] and do_res:
-            new_out = [self.noise_iter[x].copy()
+            self.noise_iter = [self.noise_iter[x].copy()
                        for x in resampled_particles]
-            self.noise_iter = new_out.copy()
 
-            new_out = [self.out_members_iter[x].copy()
+            self.out_members_iter = [self.out_members_iter[x].copy()
                        for x in resampled_particles]
-            self.out_members_iter = new_out.copy()
 
     def season_rejuvenation(self):
         for mbr in range(self.members):
