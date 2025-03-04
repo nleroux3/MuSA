@@ -8,16 +8,11 @@ import config as cfg
 
 from modules.radar_equivalent_snow import *
 
-import sys
-sys.path.append('/fs/homeu2/eccc/mrd/ords/rpnenv/nil005/Codes/smrt')
-#from smrt.core.globalconstants import DENSITY_OF_ICE
 from smrt import sensor_list, make_model, make_snowpack, make_soil
 from smrt.emmodel.iba import derived_IBA
 from smrt.permittivity.snow_mixing_formula import wetsnow_permittivity_memls as memls
 from concurrent.futures import ProcessPoolExecutor, as_completed
-
-sys.path.append('/home/nil005/ords/Codes/mironov_soil')
-from mironov import mironov_model
+from modules.mironov import mironov_model
 
 
 DENSITY_OF_ICE = 917.
@@ -28,12 +23,12 @@ def debye_eqn(ssa, density):
     if ssa == 0 :
         return np.nan
     else:
-        return 4. * (1. - density / DENSITY_OF_ICE) / (ssa * DENSITY_OF_ICE)  
+        return 4. * (1. - density / DENSITY_OF_ICE) / (ssa * DENSITY_OF_ICE)
 
 
 def to_dB(data):
     return 10. * np.log10(data)
-                         
+
 def to_lin(data):
     return 10.**(data/10.)
 
@@ -60,9 +55,9 @@ def run_SMRT(snow_df, soil_df, freq, clay_perc, rhosoil, mss):
         e_r, e_i = mironov_model(soil_df['TPSOIL'].iloc[0]-273.15, clay_perc, soil_df['WSOIL'].iloc[0], rhosoil)
         eps = complex(e_r, e_i)
 
-        sub = make_soil('geometrical_optics_backscatter', 
-                        permittivity_model = eps, 
-                        mean_square_slope=mss, 
+        sub = make_soil('geometrical_optics_backscatter',
+                        permittivity_model = eps,
+                        mean_square_slope=mss,
                         temperature = soil_df['TPSOIL'].iloc[0])
 
 
@@ -79,12 +74,12 @@ def run_SMRT(snow_df, soil_df, freq, clay_perc, rhosoil, mss):
                                               emmodel_options=dict(dense_snow_correction='auto'))
 
         sensor  = sensor_list.active(freq, 35)
-        
+
         result = model.run(sensor, snowpack, parallel_computation=False)
-        
+
         return result.sigmaVV()
-                  
-def generate_smrt_output():               
+
+def generate_smrt_output(tmp_mbr_folder):
     '''
     Roughness model: Geometrical Optics Backscatter model
     Permittivity model: static complexe permittivity values to optimize from C-band
@@ -93,9 +88,9 @@ def generate_smrt_output():
     # Determine soil permittivity using Mironov (https://github.com/JulienMeloche/mironov_soil)
 
     # open the parameter fil and get the soil parameters needed to calculate the soil permittivity
-    file = open(cfg.tmp_path+'/MESH_parameters.txt') 
-      
-    content = file.readlines() 
+    file = open(tmp_mbr_folder+'/MESH_parameters.txt')
+
+    content = file.readlines()
 
     NotFound_sand = True
     line = 0
@@ -118,7 +113,7 @@ def generate_smrt_output():
     clay_perc = re.findall(r"[-+]?(?:\d*\.*\d+)", content[line])
     clay_perc = [float(i) for i in clay_perc]
 
-    deltaz = pd.read_csv(cfg.tmp_path+'/MESH_input_soil_levels.txt', delim_whitespace=' ', header=None)
+    deltaz = pd.read_csv(tmp_mbr_folder+'/MESH_input_soil_levels.txt', delim_whitespace=' ', header=None)
     deltaz = deltaz[0].values
 
     # Compute dry soil density (from inisoil_svs2.f90)
@@ -133,55 +128,55 @@ def generate_smrt_output():
     lc_soil = 0.1
     mss=2.*(sig_soil/lc_soil)**2
 
-             
+
     # Read simulation results
-    mod = xr.open_dataset(os.path.join(cfg.tmp_path,'output','out_svs2.nc'))
+    mod = xr.open_dataset(os.path.join(tmp_mbr_folder,'output','out_svs2.nc'))
 
-    df_soil = mod[['WSOIL','TPSOIL']].to_dataframe() 
-    df_snow = mod[['SNODEN_ML','SNOMA_ML','TSNOW_ML','SNODOPT_ML','SNODP']].to_dataframe() 
+    df_soil = mod[['WSOIL','TPSOIL']].to_dataframe()
+    df_snow = mod[['SNODEN_ML','SNOMA_ML','TSNOW_ML','SNODOPT_ML','SNODP']].to_dataframe()
 
-    df_snow['thickness'] = df_snow[['SNODEN_ML','SNOMA_ML']].apply(lambda x : x[1] / x[0], axis = 1) 
-    df_snow['SNOSSA_ML'] = df_snow['SNODOPT_ML'].apply(lambda x: 6./(x * DENSITY_OF_ICE) if x>0 else 0) 
+    df_snow['thickness'] = df_snow[['SNODEN_ML','SNOMA_ML']].apply(lambda x : x[1] / x[0], axis = 1)
+    df_snow['SNOSSA_ML'] = df_snow['SNODOPT_ML'].apply(lambda x: 6./(x * DENSITY_OF_ICE) if x>0 else 0)
     df_snow['corr length'] = df_snow[['SNODEN_ML','SNOSSA_ML']].apply(lambda x: debye_eqn(x[1], x[0]), axis = 1)
 
     if cfg.da_algorithm == "ensemble_OL": # Run SMRT only when we have obs'
         # Get the obs
         obs = xr.open_dataset(cfg.obs_file).to_dataframe()
         times = obs.index
-    
+
         # The full snowpack vertical properties is outputted every 6 h
         #time_bgn = pd.to_datetime(str(mod.time.values[0]))
         #time_bgn_D = time_bgn.floor('D')
-        #time_end = pd.to_datetime(str(mod.time.values[-1]))                                        
-        #times = pd.date_range(start = time_bgn_D , end = time_end , freq = '6H') 
+        #time_end = pd.to_datetime(str(mod.time.values[-1]))
+        #times = pd.date_range(start = time_bgn_D , end = time_end , freq = '6H')
         #times = times[times > time_bgn]
 
     else:
-        # Snow profile outputs are every 6 h     
+        # Snow profile outputs are every 6 h
         time_bgn = pd.to_datetime(str(mod.time.values[0]))
-        time_end = pd.to_datetime(str(mod.time.values[-1]))                                        
-        times = pd.date_range(start = time_bgn , end = time_end , freq = '1H')   
+        time_end = pd.to_datetime(str(mod.time.values[-1]))
+        times = pd.date_range(start = time_bgn , end = time_end , freq = '1H')
         times = times[-1:] # just the last time of each assimilation step for now, saves time
 
         # Every 6 h
         #time_bgn_D = time_bgn.floor('D')
-        #times = pd.date_range(start = time_bgn_D , end = time_end , freq = '6H') 
+        #times = pd.date_range(start = time_bgn_D , end = time_end , freq = '6H')
         #times = times[times > time_bgn]
-          
+
 
 
     df_snow.loc[:, 'height'] = np.nan
     for date in times:
         df_temp = df_snow.loc[date].copy()
         df_snow.loc[date,'height'] = np.cumsum(df_temp.thickness.values[::-1])[::-1]
-                
+
     # Get the snowpacks for SMRT
     if cfg.radar_equivalent_snow:
         snow_t_13GHz = [three_layer_k(df_snow.loc[date], method = 'thick-ke-density', freq = 13e9) for date in times]
         snow_t_17GHz = [three_layer_k(df_snow.loc[date], method = 'thick-ke-density', freq = 17e9) for date in times]
     else:
         snow_t_list = []
-        for tt in times: 
+        for tt in times:
             snow_t = df_snow.loc[tt].copy()
             snow_t = snow_t[snow_t['SNOMA_ML'] > 0]
             snow_t_list.append(snow_t)
@@ -199,7 +194,7 @@ def generate_smrt_output():
     soil_t_list = []
     time_list = []
 
-    for tt in times: 
+    for tt in times:
         soil_t = df_soil.loc[tt]
         soil_t_list.append(soil_t)
         time_list.append(tt)
@@ -207,13 +202,13 @@ def generate_smrt_output():
     input_list_13GHz = [(snow_t_13GHz[i], soil_t_list[i], 13e9, clay_perc[0], rhosoil[0], mss) for i in range(len(time_list))]
     input_list_17GHz = [(snow_t_17GHz[i], soil_t_list[i], 17e9, clay_perc[0], rhosoil[0], mss) for i in range(len(time_list))]
 
-    input_list = input_list_13GHz + input_list_17GHz 
+    input_list = input_list_13GHz + input_list_17GHz
 
     #run the model
     results = []
     for args in input_list:
         results.append(run_SMRT(*args))
-    
+
 
     result_13GHz = results[:int(len(input_list)/2)]
     result_17GHz = results[int(len(input_list)/2):]
@@ -223,7 +218,7 @@ def generate_smrt_output():
     sigma_diff_13_17 = [a - b for (a, b) in zip(result_13GHz, result_17GHz)]
 
 
-                             
+
     smrt = pd.DataFrame()
     smrt['time'] = time_list
     smrt['sigma_13GHz'] = sigma_13GHz
@@ -233,9 +228,9 @@ def generate_smrt_output():
     smrt = smrt.set_index('time')
 
     smrt_xr = smrt.to_xarray()
-                             
-    # Write netcdf   
-    encoding = generate_encodings(smrt_xr) 
+
+    # Write netcdf
+    encoding = generate_encodings(smrt_xr)
     netcdf_file_out = 'out_smrt.nc'
-    smrt_xr.to_netcdf(os.path.join(cfg.tmp_path,'output',netcdf_file_out))
+    smrt_xr.to_netcdf(os.path.join(tmp_mbr_folder,'output',netcdf_file_out))
 

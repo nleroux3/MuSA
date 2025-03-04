@@ -4,6 +4,10 @@ import xarray as xr
 import numpy as np
 import sys
 import config as cfg
+import warnings
+
+# Suppress only FutureWarnings
+warnings.simplefilter("ignore", category=FutureWarning)
 
 def generate_encodings(data):
     encoding = {}
@@ -20,14 +24,14 @@ def generate_encodings(data):
     return encoding
 
 
-def generate_nc_output():
+def generate_nc_output(tmp_mbr_folder):
     # Land surface scheme : select among svs1 and svs2
     lss = 'svs2'
 
     # Go to exp directory
 
     # Get list of files containing SVS outputs
-    list_fic = glob.glob(os.path.join(cfg.tmp_path,'output',lss+'*.csv'))
+    list_fic = glob.glob(os.path.join(tmp_mbr_folder,'output',lss+'*.csv'))
 
     for ific,fic in enumerate(list_fic):
 
@@ -102,7 +106,7 @@ def generate_nc_output():
 
     # List of cumulated variable that need to be reprocessed to handle the fact that they are reset to zero
     # every day at 12 UTC by MESH-SVS (to mimic GEM-Hydro daily integration cycle)
-    var_cum=['RSNOW_AC']
+    var_cum=['RSNOW_AC','LAT_AC','ROF_AC','DRA_AC','EVP_AC','ESNCAF','RSNV_AC']
 
     for var in var_cum:
         if var in ref.data_vars:
@@ -110,10 +114,10 @@ def generate_nc_output():
             ext = ref[var].diff(dim='time', label='upper')
 
             # Extract data at 13 UTC
-            mm=ext.time.dt.hour==13
+            mm=ext['time'].dt.hour.values==13
             ref_var = ref[var][1:]
 
-            # Adjust the houlry increase at 13 UTC
+            # Adjust the hourly increase at 13 UTC
             ext.loc[dict(time=ext.time[mm])] = ref_var[mm].values
 
             # Compute cumulated values
@@ -124,12 +128,10 @@ def generate_nc_output():
 
 
 
-
     # Write netcdf
     encoding = generate_encodings(ref)
     netcdf_file_out = 'out_'+lss+'.nc'
-    netcdf_path = os.path.join(cfg.tmp_path,'output',netcdf_file_out)
+    netcdf_path = os.path.join(tmp_mbr_folder,'output',netcdf_file_out)
     if os.path.exists(netcdf_path):
         os.remove(netcdf_path)  # Remove existing file before writing
     ref.to_netcdf(netcdf_path)
-
