@@ -52,6 +52,7 @@ def model_run(tmp_mbr_folder, mbr=-1):
 
     current_dir = os.getcwd()
     os.chdir(tmp_mbr_folder)
+    os.makedirs(os.path.join(tmp_mbr_folder, 'output'), exist_ok=True)
     os.system(f'{os.path.join(current_dir, "MESH_SVS2", "sa_mesh")} > log.txt')
     os.chdir(current_dir)
     generate_nc_output(tmp_mbr_folder)

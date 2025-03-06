@@ -186,12 +186,26 @@ def obs_array(dates_obs, lat_idx, lon_idx):
             array_error = np.empty(len(del_t))
             array_error[:] = np.nan
 
-
             array_obs[obs_idx] = ds[obs_var].values
+            
             if cfg.lr_cov_perc == False: # r_cov is in covariance of the obs
                 array_error[obs_idx] = cfg.r_cov[cont]
+                
+                if cfg.lperturb_obs: # Perturb the obs with the same variance as for the covariance matrix
+                    array_obs[obs_idx]  += np.random.normal(loc=0.0, scale=np.sqrt(cfg.r_cov[cont]), size = len(array_obs[obs_idx]))
+                    
+                    if obs_var.lower() in ['swe', 'sd']:
+                        array_obs[array_obs < 0.] = 0.
+                    
             else: # r_cov is in percentage
-                array_error[obs_idx] = (cfg.r_cov[cont] * array_obs[obs_idx] / 100.)**2.
+                
+                array_error[obs_idx] = (cfg.r_cov[cont] * array_obs[obs_idx] / 100.)**2. # Covariance, so squared
+                
+                if cfg.lperturb_obs: # Perturb the obs with the same variance as for the covariance matrix
+                    array_obs[obs_idx]  += np.array([np.random.normal(loc=0.0, scale=np.sqrt(cov)) for cov in  array_error[obs_idx]])
+                    
+                    if obs_var.lower() in ['swe', 'sd']:
+                        array_obs[array_obs < 0.] = 0.
 
 
             obs_matrix[:, cont] = array_obs

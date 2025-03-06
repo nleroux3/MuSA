@@ -12,16 +12,15 @@ numerical_model = 'svs2'  # model to use from svs2, FSM2, dIm or snow17
 # Directories
 # -----------------------------------
 
-dir_exp = '/home/nil005/store6/Driving_Data/MuSA_PF/' # Folder with all the config/input files for MESH-SVS2
-tmp_path = '/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/sim_exp' # Temporary path where the svs2 outputs are stored
-
-obs_file = '/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/obs/obs_Powassan_synth_weekly_noLiq.nc'
+dir_exp = './SVS2_experiment' # Folder with all the config/input files for MESH-SVS2
+tmp_path = './SVS2_experiment/tmp' # Temporary path where the svs2 outputs are stored
+obs_file = './SVS2_experiment/Prep_data/obs/obs_Powassan.nc'
 intermediate_path = "./DATA/INTERMEDIATE/" # Useless for SVS2
-file_forcing = '/home/nil005/store6/Driving_Data/MuSA_PF/Prep_data/Input_MESH/basin_forcing_Powassan_2223.met'
+file_forcing = './SVS2_experiment/Prep_data/Input_MESH/basin_forcing.met'
 
-# First user should change that
-save_ensemble_path = "/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/output_PF/"
-output_path = "/home/nil005/store6/Driving_Data/MuSA_PF/Simulation_TestBed/output_PF/"
+# User should change that
+save_ensemble_path = "./SVS2_experiment/outputs/"
+output_path = "./SVS2_experiment/outputs/"
 
 name_output = 'cell_Powassan' # Default output file by MuSA (weights, ...)
 name_ensemble_output = 'ensbl_Powassan' # Full ensemble output
@@ -70,6 +69,9 @@ burn_in = 0.1      # discard the first x proportion of samples
 lr_cov_perc = False # If True, r_cov should be in percentage [0-100]
 r_cov = [1]
 add_dynamic_noise = False
+
+# Key to perturb the observations using the variance specified in r_cov. Used for synthetic experiments
+lperturb_obs = True
 
 #mark as true to perturb forcing with different noise every hour, otherwise keep the same noise for the whole assimilation time step (default in MuSA)
 lperturb_hourly = True
