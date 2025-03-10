@@ -216,10 +216,10 @@ def generate_smrt_output(tmp_mbr_folder):
 
     if len(time_list)  > 0:
         sensor  = sensor_list.active(13.5e9, 35)
-        result_13GHz = model.run(sensor,  meta_df, snowpack_column='smrt_snow', parallel_computation=False)
+        result_13GHz = model.run(sensor,  meta_df, snowpack_column='smrt_snow', parallel_computation=cfg.parallelization_SMRT)
 
         sensor  = sensor_list.active(17.25e9, 35)
-        result_17GHz = model.run(sensor,  meta_df, snowpack_column='smrt_snow', parallel_computation=False)
+        result_17GHz = model.run(sensor,  meta_df, snowpack_column='smrt_snow', parallel_computation=cfg.parallelization_SMRT)
 
         sigma_13GHz = to_dB(result_13GHz.sigmaVV())
         sigma_17GHz = to_dB(result_17GHz.sigmaVV())

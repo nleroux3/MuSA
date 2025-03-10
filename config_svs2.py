@@ -31,6 +31,8 @@ radar_equivalent_snow = False
 
 # To parallelize running the members or not
 parallelization_mbrs = True
+# To parallelize SMRT (cannot be true if parallelization_mbrs = True)
+parallelization_SMRT = False
 
 # If restart_run is enabled, the outputs will not be overwritten
 restart_run = False # Keep at False for SVS2
