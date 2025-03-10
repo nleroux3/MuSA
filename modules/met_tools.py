@@ -175,14 +175,14 @@ def create_noise(perturbation_strategy, n_steps, mean, std_dev, var):
 
             # Eqs 12 & 13 from Magnusson et al. 2017
             alpha = 1.-dt_model/(cnt.tau[var] * 3600.) # tau from hour to s
-            
+
             for i in range(1,n_steps):
                 q[i] = q[i-1] * alpha + np.sqrt(1.-alpha**2)* w[i]
 
             if perturbation_strategy == "normal":
-                noise = q * std_dev  + mean   
+                noise = q * std_dev  + mean
             elif perturbation_strategy == "lognormal":
-                noise = np.exp(q * std_dev  + mean   ) 
+                noise = np.exp(q * std_dev  + mean   )
 
 
 
@@ -195,7 +195,7 @@ def create_noise(perturbation_strategy, n_steps, mean, std_dev, var):
         # constant noise over the assimilation time step
         if perturbation_strategy == "normal":
             noise = np.random.normal(mean, std_dev, 1)
-    
+
             # If noise outside of bounds, redraw until within the bounds
             while ((noise > bPmax) | (noise < bPmin)):
                 noise = np.random.normal(mean, std_dev, 1)
@@ -318,24 +318,24 @@ def perturb_parameters(main_forcing, lat_idx=None, lon_idx=None, member=None,
 
         # store the noise
         noise_storage[var_tmp] = noise_coef
-        
+
         if (cfg.lperturb_LW):
             if var_tmp == 'TA': #This will only work if you pertrub temp too, and if the temp perturbation is additive
                 #These values are specific to Powasson, would want to update it for different sights
-                
+
                 #LW = a*TA+b
                 #LW = 3.71268891*T-743.4975539711769
                 #forcing_copy['FLIN'] = ((forcing_copy['TA'].values+273.15)*3.71268891) - 743.4975539711769
-            
+
                 #temp change is is additive so the change in temp is the perturbation value
-                #Change in LW is (change of temp)*slope 
+                #Change in LW is (change of temp)*slope
                 #then add to the value of LW so it is staying correlated but keeping the original value of LW involved in the calculation
                 LW_change = 3.71268891*noise_coef
                 forcing_copy['FLIN'] = forcing_copy['FLIN'].values+LW_change
                 #add this perturbation to the noise dictionary so we can see it in outputs
                 noise_storage['FLIN'] = LW_change
-            
-        
+
+
         if var_tmp == 'FSIN':
             precip = forcing_copy['PRE'].values
             shortwave = forcing_copy['FSIN'].values
@@ -343,14 +343,14 @@ def perturb_parameters(main_forcing, lat_idx=None, lon_idx=None, member=None,
             shortwave[mask] = 300.
             shortwave = np.maximum(shortwave, 0.)
             forcing_copy['FSIN'] = shortwave
-        
+
         #if LW is below 0, set it to 0
         if (var_tmp == 'FLIN') or (cfg.lperturb_LW):
             longwave = forcing_copy['FLIN'].values
             longwave = np.maximum(longwave, 0.)
             forcing_copy['FLIN'] = longwave
-                
-                    
+
+
         #if PRE is below 0, set it to 0
         #if doing a multiplicative perturbation there is no way for it to go below 0, but adding this in anyway
         if var_tmp == 'PRE':
@@ -358,14 +358,14 @@ def perturb_parameters(main_forcing, lat_idx=None, lon_idx=None, member=None,
             precip = np.maximum(precip, 0.)
             forcing_copy['PRE'] = precip
 
-                    
+
         #limit windspeed between 0.5 and 25 m/s (Magnusson et al., 2017)
         if var_tmp =='UV':
             windspeed = forcing_copy['UV'].values
             windspeed = np.maximum(windspeed, 0.5)
             windspeed = np.minimum(windspeed, 25.)
             forcing_copy['UV'] = windspeed
-                    
+
 
     return forcing_copy, noise_storage
 

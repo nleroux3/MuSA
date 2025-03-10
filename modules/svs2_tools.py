@@ -146,7 +146,7 @@ def configure_MESH_parameter(step, dump, tmp_folder):
         os.system('cp '+cfg.dir_exp+'/exp_cfg/param_file/MESH_parameters_ini.txt '+tmp_folder+'/MESH_parameters.txt')
     else:
 
-        os.system('cp '+cfg.dir_exp+'exp_cfg/param_file/MESH_parameters_restart.txt '+tmp_folder+'/MESH_parameters.txt')
+        os.system('cp '+cfg.dir_exp+'/exp_cfg/param_file/MESH_parameters_restart.txt '+tmp_folder+'/MESH_parameters.txt')
         dump.to_csv(os.path.join(tmp_folder,'MESH_parameters.txt'), mode = 'a', index = False, header=False, sep = '\t')
 
     # Copy the MESH_input_soil_levels and MESH_input_run_options files into the tmp mbr folder

@@ -5,6 +5,8 @@ import pandas as pd
 import xarray as xr
 import numpy as np
 import config as cfg
+from joblib import Parallel, delayed, parallel_backend
+from dask.distributed import LocalCluster, Client
 
 from modules.radar_equivalent_snow import *
 
@@ -46,7 +48,7 @@ def generate_encodings(data):
         encoding[var] = DEFAULT_ENCODING.copy()
     return encoding
 
-def run_SMRT(snow_df, soil_df, freq, clay_perc, rhosoil, mss):
+def get_snowpack(snow_df, soil_df, clay_perc, rhosoil, mss):
 
     if len(snow_df) == 0: # no snow layer
         return np.nan
@@ -68,16 +70,8 @@ def run_SMRT(snow_df, soil_df, freq, clay_perc, rhosoil, mss):
                                  corr_length = snow_df['corr length'],
                                  substrate = sub)
 
-        #Modeling theories to use in SMRT
-        model = make_model(derived_IBA(memls), "dort", rtsolver_options=dict(diagonalization_method="shur_forcedtriu",
-                                                                    error_handling='nan'),
-                                              emmodel_options=dict(dense_snow_correction='auto'))
+    return snowpack
 
-        sensor  = sensor_list.active(freq, 35)
-
-        result = model.run(sensor, snowpack, parallel_computation=False)
-
-        return result.sigmaVV()
 
 def generate_smrt_output(tmp_mbr_folder):
     '''
@@ -122,6 +116,11 @@ def generate_smrt_output(tmp_mbr_folder):
     rhosoil = rhosoil / 1000. # kg m-3 to g cm-3
 
 
+
+    '''
+    Roughness model: Geometrical Optics Backscatter model
+    Permittivity model: static complex permittivity values to optimize from C-band
+    '''
     #Mean square slope of the target footprint calculated from soil RSM height and soil correlation length
     #use dummy values for now
     sig_soil = 0.01
@@ -135,21 +134,27 @@ def generate_smrt_output(tmp_mbr_folder):
     df_soil = mod[['WSOIL','TPSOIL']].to_dataframe()
     df_snow = mod[['SNODEN_ML','SNOMA_ML','TSNOW_ML','SNODOPT_ML','SNODP']].to_dataframe()
 
+    # SNODEN_ML: densite des couches
+    # SNOMA_ML: SWE des couches
+    # TSNOW_ML: T des couches
+    # SNODOPT_ML: diametre optique des couches
+    # SNODP: hauteur totale du snowpack
+
     df_snow['thickness'] = df_snow[['SNODEN_ML','SNOMA_ML']].apply(lambda x : x[1] / x[0], axis = 1)
     df_snow['SNOSSA_ML'] = df_snow['SNODOPT_ML'].apply(lambda x: 6./(x * DENSITY_OF_ICE) if x>0 else 0)
     df_snow['corr length'] = df_snow[['SNODEN_ML','SNOSSA_ML']].apply(lambda x: debye_eqn(x[1], x[0]), axis = 1)
 
     if cfg.da_algorithm == "ensemble_OL": # Run SMRT only when we have obs'
-        # Get the obs
-        obs = xr.open_dataset(cfg.obs_file).to_dataframe()
-        times = obs.index
+        # Get the obs times
+        # obs = xr.open_dataset(cfg.obs_file).to_dataframe()
+        # times = obs.index
 
         # The full snowpack vertical properties is outputted every 6 h
-        #time_bgn = pd.to_datetime(str(mod.time.values[0]))
-        #time_bgn_D = time_bgn.floor('D')
-        #time_end = pd.to_datetime(str(mod.time.values[-1]))
-        #times = pd.date_range(start = time_bgn_D , end = time_end , freq = '6H')
-        #times = times[times > time_bgn]
+        time_bgn = pd.to_datetime(str(mod.time.values[0]))
+        time_bgn_D = time_bgn.floor('D')
+        time_end = pd.to_datetime(str(mod.time.values[-1]))
+        times = pd.date_range(start = time_bgn_D , end = time_end , freq = '12H')
+        times = times[times > time_bgn]
 
     else:
         # Snow profile outputs are every 6 h
@@ -158,9 +163,9 @@ def generate_smrt_output(tmp_mbr_folder):
         times = pd.date_range(start = time_bgn , end = time_end , freq = '1H')
         times = times[-1:] # just the last time of each assimilation step for now, saves time
 
-        # Every 6 h
+        # Every 12 h
         #time_bgn_D = time_bgn.floor('D')
-        #times = pd.date_range(start = time_bgn_D , end = time_end , freq = '6H')
+        #times = pd.date_range(start = time_bgn_D , end = time_end , freq = '12H')
         #times = times[times > time_bgn]
 
 
@@ -174,50 +179,57 @@ def generate_smrt_output(tmp_mbr_folder):
     if cfg.radar_equivalent_snow:
         snow_t_13GHz = [three_layer_k(df_snow.loc[date], method = 'thick-ke-density', freq = 13e9) for date in times]
         snow_t_17GHz = [three_layer_k(df_snow.loc[date], method = 'thick-ke-density', freq = 17e9) for date in times]
-    else:
-        snow_t_list = []
-        for tt in times:
-            snow_t = df_snow.loc[tt].copy()
-            snow_t = snow_t[snow_t['SNOMA_ML'] > 0]
-            snow_t_list.append(snow_t)
-        snow_t_13GHz = snow_t_list.copy()
-        snow_t_17GHz = snow_t_list.copy()
 
 
     # Get backscatter from SMRT from the times when we have snow profile outputs
     sigma_13GHz = []
     sigma_17GHz = []
-    time_sigma = []
     sigma_diff_13_17 = []
 
 
-    soil_t_list = []
     time_list = []
-
+    snowpacks = []
+    SWE = []
+    depth = []
     for tt in times:
+        snow_t = df_snow.loc[tt]
         soil_t = df_soil.loc[tt]
-        soil_t_list.append(soil_t)
-        time_list.append(tt)
+        snow_t = snow_t[snow_t['SNOMA_ML'] > 0]  # Select only layers with a mass
 
-    input_list_13GHz = [(snow_t_13GHz[i], soil_t_list[i], 13e9, clay_perc[0], rhosoil[0], mss) for i in range(len(time_list))]
-    input_list_17GHz = [(snow_t_17GHz[i], soil_t_list[i], 17e9, clay_perc[0], rhosoil[0], mss) for i in range(len(time_list))]
-
-    input_list = input_list_13GHz + input_list_17GHz
-
-    #run the model
-    results = []
-    for args in input_list:
-        results.append(run_SMRT(*args))
+        if len(snow_t) > 0: # We get the backscatter when the snowpack depth is > 0 m
+            time_list.append(tt)
+            snowpacks.append(get_snowpack(snow_t, soil_t,clay_perc[0], rhosoil[0], mss))
+            SWE.append(snow_t['SNOMA_ML'].sum())
+            depth.append(snow_t['SNODP'].mean())
 
 
-    result_13GHz = results[:int(len(input_list)/2)]
-    result_17GHz = results[int(len(input_list)/2):]
-
-    sigma_13GHz = [to_dB(a) for a in result_13GHz]
-    sigma_17GHz = [to_dB(a) for a in result_17GHz]
-    sigma_diff_13_17 = [a - b for (a, b) in zip(result_13GHz, result_17GHz)]
+    snowpacks = pd.Series(snowpacks, index = time_list)
+    #create a dataframe
+    meta_df = pd.DataFrame({'depth' :depth, 'SWE': SWE, 'smrt_snow' : snowpacks}, index = time_list).dropna()
 
 
+
+    #Modeling theories to use in SMRT
+    model = make_model(derived_IBA(memls), "dort", rtsolver_options=dict(diagonalization_method="shur_forcedtriu",
+                                                                error_handling='nan'),
+                                            emmodel_options=dict(dense_snow_correction='auto'))
+
+    if len(time_list)  > 0:
+        sensor  = sensor_list.active(13.5e9, 35)
+        result_13GHz = model.run(sensor,  meta_df, snowpack_column='smrt_snow', parallel_computation=False)
+
+        sensor  = sensor_list.active(17.25e9, 35)
+        result_17GHz = model.run(sensor,  meta_df, snowpack_column='smrt_snow', parallel_computation=False)
+
+        sigma_13GHz = to_dB(result_13GHz.sigmaVV())
+        sigma_17GHz = to_dB(result_17GHz.sigmaVV())
+        sigma_diff_13_17 = to_dB(abs(result_13GHz.sigmaVV() - result_17GHz.sigmaVV()))
+
+    else:
+        time_list = times
+        sigma_13GHz = -9999.
+        sigma_17GHz = -9999.
+        sigma_diff_13_17 = -9999.
 
     smrt = pd.DataFrame()
     smrt['time'] = time_list
