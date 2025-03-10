@@ -260,6 +260,10 @@ class SnowEnsemble():
             # Modify and write forcing with perturbation
             model.model_forcing_wrt(forcing_sbst, cfg.tmp_path, self.step)
 
+            # Create output folder in tmp folder if it does not exist
+            if not os.path.exists(os.path.join(cfg.tmp_path,'output')):
+                os.makedirs(os.path.join(cfg.tmp_path,'output'))
+                
             model.model_run(cfg.tmp_path)
             # read model outputs, dump is a df containing the initial conditions for next step
             origin_state_tmp, origin_dump_tmp = model.model_read_output(cfg.tmp_path)
