@@ -66,7 +66,7 @@ Additionally it is possible to store the ensembles generated for each cell. This
 MuSA works on GNU/Linux (and therefore Mac) based platforms. MuSA has been tested also in Windows using the Windows Subsystem for Linux (WSL). MuSA relies on python3 with the usual scientific libraries (numpy, pandas, scipy...) and netCDF4 installed. You will also need to have gfortran in the path. The easiest way to do this is to generate a dedicated conda environment. You can use the [MuSAenv.yml](https://github.com/ealonsogzl/MuSA/blob/master/MuSAenv.yml) file of the repository to create the conda environment:
 
 ```
-conda env create --name MuSAenv --file=MuSAenv.yml
+conda env create --name MuSAenv --file=environment.yml
 ```
 
 
