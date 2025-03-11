@@ -76,7 +76,7 @@ def concat_netcdf_ensemble_outputs(lat_idx, lon_idx):
         os.remove(file)
 
     # Concat all the vertical
-    ds = xr.concat(ens_list, dim='mbr', coords = 'all').drop_dims('soil_layer').assign_coords({"mbr": range(cfg.ensemble_members)})
+    ds = xr.concat(ens_list, dim='mbr', coords = 'all').assign_coords({"mbr": range(cfg.ensemble_members)})
 
     # Import obs times and filter the output profiles on those datess
     obs = xr.open_dataset(cfg.obs_file).to_dataframe()
