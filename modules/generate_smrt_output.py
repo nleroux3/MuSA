@@ -177,7 +177,7 @@ def generate_smrt_output(tmp_mbr_folder):
 
     # Get the snowpacks for SMRT
     if cfg.radar_equivalent_snow:
-        snow_t_13GHz = [three_layer_k(df_snow.loc[date], method = 'thick-ke-density', freq = 13e9) for date in times]
+        snow_t_13GHz = [three_layer_k(df_snow.loc[date], method = 'thick-ke-density', freq = 13.5e9) for date in times]
         snow_t_17GHz = [three_layer_k(df_snow.loc[date], method = 'thick-ke-density', freq = 17e9) for date in times]
 
 
